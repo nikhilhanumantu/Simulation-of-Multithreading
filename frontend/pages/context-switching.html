@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Context Switching – ThreadLab</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "inverse-on-surface": "#ecf1ff",
+            "secondary-container": "#8455ef",
+            "on-primary-container": "#eeefff",
+            "on-tertiary": "#ffffff",
+            "on-error-container": "#93000a",
+            "surface-bright": "#f9f9ff",
+            "secondary-fixed": "#e9ddff",
+            "secondary": "#6b38d4",
+            "primary": "#004ac6",
+            "surface-container": "#e7eeff",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed": "#00174b",
+            "primary-fixed": "#dbe1ff",
+            "inverse-primary": "#b4c5ff",
+            "primary-fixed-dim": "#b4c5ff",
+            "surface-container-highest": "#d8e3fb",
+            "background": "#f9f9ff",
+            "on-tertiary-fixed": "#21005e",
+            "tertiary-fixed": "#e8ddff",
+            "on-tertiary-container": "#f5edff",
+            "on-surface-variant": "#434655",
+            "tertiary": "#5d41ab",
+            "surface": "#f9f9ff",
+            "surface-tint": "#0053db",
+            "on-background": "#111c2d",
+            "surface-container-high": "#dee8ff",
+            "tertiary-container": "#765ac5",
+            "primary-container": "#2563eb",
+            "on-error": "#ffffff",
+            "on-secondary": "#ffffff",
+            "on-surface": "#111c2d",
+            "surface-container-low": "#f0f3ff",
+            "tertiary-fixed-dim": "#cebdff",
+            "surface-dim": "#cfdaf2",
+            "outline-variant": "#c3c6d7",
+            "on-primary": "#ffffff",
+            "on-primary-fixed-variant": "#003ea8",
+            "error": "#ba1a1a",
+            "on-secondary-fixed": "#23005c",
+            "inverse-surface": "#263143",
+            "on-secondary-container": "#fffbff",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#d0bcff",
+            "on-tertiary-fixed-variant": "#4f319c",
+            "on-secondary-fixed-variant": "#5516be",
+            "surface-variant": "#d8e3fb",
+            "outline": "#737686"
+          },
+          borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+          spacing: {
+            "space-2xl": "2.5rem",
+            "space-md": "0.75rem",
+            "space-xl": "1.75rem",
+            "margin-desktop": "2rem",
+            margin: "1rem",
+            "space-lg": "1.25rem",
+            "gutter-desktop": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            gutter: "1rem"
+          },
+          fontFamily: {
+            "headline-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "counter-mono": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "display-mobile": ["Inter"],
+            "body-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "status-badge": ["Inter"],
+            display: ["Inter"],
+            "label-mono": ["JetBrains Mono"],
+            "headline-md": ["Inter"]
+          },
+          fontSize: {
+            "headline-sm": ["16px", { lineHeight: "24px", letterSpacing: "-0.005em", fontWeight: "600" }],
+            "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.015em", fontWeight: "600" }],
+            "counter-mono": ["18px", { lineHeight: "24px", fontWeight: "600" }],
+            "body-sm": ["12px", { lineHeight: "18px", fontWeight: "400" }],
+            "display-mobile": ["26px", { lineHeight: "34px", letterSpacing: "-0.01em", fontWeight: "700" }],
+            "body-md": ["13px", { lineHeight: "20px", fontWeight: "400" }],
+            "body-lg": ["15px", { lineHeight: "24px", fontWeight: "400" }],
+            "status-badge": ["11px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "600" }],
+            display: ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+            "label-mono": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+            "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "600" }]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+  <!-- SIDEBAR -->
+  <aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_16px_rgba(37,99,235,0.06)]">
+    <div class="flex flex-col">
+      <div class="h-16 flex items-center px-space-lg gap-space-sm bg-surface-container-lowest">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white shadow-md">
+          <span class="material-symbols-outlined text-[20px]">layers</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-headline-sm text-headline-sm text-on-surface leading-tight tracking-tight">ThreadLab</span>
+          <span class="font-label-mono text-label-mono text-outline leading-none text-[10px]">Simulation of Multithreading</span>
+        </div>
+      </div>
+      <div class="px-space-md py-space-xs">
+        <div class="px-space-sm py-space-xs font-label-mono text-label-mono uppercase tracking-wider text-outline text-[10px]">Simulations & Labs</div>
+      </div>
+      <nav class="px-space-md flex flex-col gap-1">
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/dashboard.html">
+          <span class="material-symbols-outlined text-[19px]">space_dashboard</span>
+          <span class="font-body-md text-body-md">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/thread-manager.html">
+          <span class="material-symbols-outlined text-[19px]">tune</span>
+          <span class="font-body-md text-body-md">Thread Manager</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/cpu-scheduling.html">
+          <span class="material-symbols-outlined text-[19px]">memory</span>
+          <span class="font-body-md text-body-md">CPU Scheduling</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/thread-lifecycle.html">
+          <span class="material-symbols-outlined text-[19px]">timeline</span>
+          <span class="font-body-md text-body-md">Thread Lifecycle</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/synchronization.html">
+          <span class="material-symbols-outlined text-[19px]">lock_reset</span>
+          <span class="font-body-md text-body-md">Synchronization Lab</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/deadlock.html">
+          <span class="material-symbols-outlined text-[19px]">rule_folder</span>
+          <span class="font-body-md text-body-md">Deadlock Lab</span>
+        </a>
+        <a aria-current="page" class="flex items-center gap-space-sm px-space-md py-2 rounded-xl transition-all bg-gradient-to-r from-primary-container to-secondary text-on-primary shadow-[0_4px_12px_rgba(37,99,235,0.25)] font-semibold" href="/pages/context-switching.html">
+          <span class="material-symbols-outlined text-[19px]">swap_horiz</span>
+          <span class="font-body-md text-body-md">Context Switching</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/analytics.html">
+          <span class="material-symbols-outlined text-[19px]">analytics</span>
+          <span class="font-body-md text-body-md">Performance Analytics</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/learning.html">
+          <span class="material-symbols-outlined text-[19px]">school</span>
+          <span class="font-body-md text-body-md">Learning Mode</span>
+        </a>
+      </nav>
+    </div>
+    <div class="p-space-md flex flex-col gap-space-sm">
+      <div class="bg-surface-container-low rounded-xl p-space-md shadow-[0_2px_8px_rgba(37,99,235,0.04)]">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-status-badge text-status-badge text-primary uppercase font-bold tracking-wider">OS Simulator</span>
+          <span class="material-symbols-outlined text-secondary text-[16px] animate-spin">sync</span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">Learn • Simulate • Visualize hardware bus & register preservation.</p>
+      </div>
+      <div class="flex items-center justify-between p-space-sm rounded-xl bg-surface-container-lowest shadow-[0_2px_6px_rgba(0,0,0,0.03)]">
+        <div class="flex items-center gap-space-sm">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary text-white flex items-center justify-center font-bold text-xs">N</div>
+          <div class="flex flex-col">
+            <span class="font-body-md text-body-md text-on-surface font-semibold leading-tight">Nikhil</span>
+            <span class="font-status-badge text-status-badge text-on-surface-variant leading-none">Student Role</span>
+          </div>
+        </div>
+        <a href="/pages/login.html" class="text-outline hover:text-error transition-colors p-1 rounded-lg hover:bg-surface-container-low" title="Log out">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOP HEADER -->
+  <div class="pl-64">
+    <header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(37,99,235,0.04)] z-40 flex items-center justify-between px-space-lg">
+      <div class="flex items-center gap-space-md">
+        <div class="flex items-center gap-2 font-body-sm text-body-sm text-outline">
+          <span class="hover:text-primary transition-colors cursor-pointer">Platform</span>
+          <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+          <span class="text-on-surface font-semibold">Multithreading Workbench</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-lg">
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span>
+          <input class="h-9 pl-9 pr-12 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm text-body-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search registers, hardware..." type="text"/>
+          <span class="absolute right-2 px-1.5 py-0.5 rounded-md bg-surface-container-lowest text-outline font-label-mono text-[11px] shadow-sm">⌘K</span>
+        </div>
+        <div class="flex items-center gap-space-sm">
+          <button class="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all">
+            <span class="material-symbols-outlined text-[20px]">notifications</span>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span>
+          </button>
+          <a href="/pages/learning.html" class="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" title="Help & Docs">
+            <span class="material-symbols-outlined text-[20px]">help_outline</span>
+          </a>
+        </div>
+        <div class="h-6 w-[1px] bg-surface-container"></div>
+        <div class="flex items-center gap-space-sm bg-surface-container-low py-1 px-space-sm rounded-full">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-primary to-secondary text-white flex items-center justify-center font-bold text-xs">N</div>
+          <div class="flex flex-col text-left">
+            <span class="font-body-sm text-body-sm font-semibold text-on-surface leading-tight">Nikhil</span>
+            <span class="font-status-badge text-[10px] text-primary uppercase font-bold leading-none">Lab Active</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="relative pt-16 w-full min-h-screen bg-background pb-12">
+      <div class="p-space-lg flex flex-col gap-space-lg max-w-[1580px] mx-auto w-full">
+        
+        <!-- Top Action Titlebar & Metadata Banner -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md bg-surface-container-lowest p-space-lg rounded-xl shadow-sm">
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <span class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Context Switching</span>
+              <span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-status-badge text-status-badge tracking-wider font-bold">KERNEL OVERHEAD SIMULATOR</span>
+              <span class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-container text-primary font-label-mono text-label-mono">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span> Live Hardware Bus
+              </span>
+            </div>
+            <p class="font-body-md text-body-md text-on-surface-variant max-w-3xl">
+              Visualize CPU state preservation, TCB/PCB register dumping, dispatch latency, and architectural performance bottlenecks between concurrent execution threads.
+            </p>
+          </div>
+          <!-- Quick Summary Metric Pills -->
+          <div class="flex items-center flex-wrap gap-space-sm">
+            <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low shadow-sm">
+              <div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[18px]">timer</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-label-mono text-[10px] text-outline uppercase">Switch Latency</span>
+                <span class="font-counter-mono text-[14px] text-on-surface font-bold" id="stat-latency">1.82 µs</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container-low shadow-sm">
+              <div class="w-8 h-8 rounded-lg bg-surface-container-highest flex items-center justify-center text-secondary">
+                <span class="material-symbols-outlined text-[18px]">swap_calls</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-label-mono text-[10px] text-outline uppercase">Total Switches</span>
+                <span class="font-counter-mono text-[14px] text-on-surface font-bold" id="stat-switches">1,420 evts</span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-error-container/40 shadow-sm">
+              <div class="w-8 h-8 rounded-lg bg-error-container flex items-center justify-center text-error">
+                <span class="material-symbols-outlined text-[18px]">speed</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-label-mono text-[10px] text-error uppercase font-semibold">Overhead Penalty</span>
+                <span class="font-counter-mono text-[14px] text-error font-bold" id="stat-overhead">4.2% Waste</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Stepper & Control Command Center -->
+        <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-md">
+          <!-- 4-Phase Transition Stepper -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-space-sm">
+            <div class="step-card flex items-center gap-3 p-space-sm rounded-xl bg-primary-container text-on-primary shadow-sm transition-all cursor-pointer" id="step-node-1" onclick="jumpToPhase(1)">
+              <div class="w-8 h-8 rounded-lg bg-on-primary/20 flex items-center justify-center font-counter-mono text-[13px] font-bold">01</div>
+              <div class="flex flex-col min-w-0">
+                <span class="font-label-mono text-[10px] uppercase tracking-wide opacity-80">Trigger Phase</span>
+                <span class="font-headline-sm text-[13px] truncate">1. Interrupt / Syscall</span>
+              </div>
+            </div>
+            <div class="step-card flex items-center gap-3 p-space-sm rounded-xl bg-surface-container-low text-on-surface shadow-sm transition-all cursor-pointer" id="step-node-2" onclick="jumpToPhase(2)">
+              <div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center font-counter-mono text-[13px] font-bold text-outline">02</div>
+              <div class="flex flex-col min-w-0">
+                <span class="font-label-mono text-[10px] uppercase tracking-wide text-outline">Kernel Mode</span>
+                <span class="font-headline-sm text-[13px] truncate">2. Save T1 State</span>
+              </div>
+            </div>
+            <div class="step-card flex items-center gap-3 p-space-sm rounded-xl bg-surface-container-low text-on-surface shadow-sm transition-all cursor-pointer" id="step-node-3" onclick="jumpToPhase(3)">
+              <div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center font-counter-mono text-[13px] font-bold text-outline">03</div>
+              <div class="flex flex-col min-w-0">
+                <span class="font-label-mono text-[10px] uppercase tracking-wide text-outline">Scheduler Core</span>
+                <span class="font-headline-sm text-[13px] truncate">3. Select Next Thread</span>
+              </div>
+            </div>
+            <div class="step-card flex items-center gap-3 p-space-sm rounded-xl bg-surface-container-low text-on-surface shadow-sm transition-all cursor-pointer" id="step-node-4" onclick="jumpToPhase(4)">
+              <div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center font-counter-mono text-[13px] font-bold text-outline">04</div>
+              <div class="flex flex-col min-w-0">
+                <span class="font-label-mono text-[10px] uppercase tracking-wide text-outline">Restore Stage</span>
+                <span class="font-headline-sm text-[13px] truncate">4. Restore T2 Context</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Control Tooling Ribbon -->
+          <div class="flex flex-wrap items-center justify-between gap-space-md pt-2">
+            <div class="flex flex-wrap items-center gap-2">
+              <button class="flex items-center gap-2 px-space-md py-2 rounded-xl bg-gradient-to-r from-primary to-primary-container text-on-primary font-headline-sm text-[13px] shadow-sm hover:shadow-md transition-all active:scale-95" id="btn-next-step" onclick="executeNextPhase()">
+                <span class="material-symbols-outlined text-[18px]">skip_next</span>
+                Execute Next Phase
+              </button>
+              <button class="flex items-center gap-2 px-space-md py-2 rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container font-headline-sm text-[13px] shadow-sm transition-all" id="btn-toggle-auto" onclick="toggleAutoPlay()">
+                <span class="material-symbols-outlined text-[18px] text-primary" id="auto-icon">play_arrow</span>
+                <span id="auto-text">Auto Play Sequence</span>
+              </button>
+              <button class="flex items-center gap-2 px-space-md py-2 rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container font-headline-sm text-[13px] shadow-sm transition-all" id="btn-reset-registers" onclick="resetRegisters()">
+                <span class="material-symbols-outlined text-[18px] text-outline">restart_alt</span>
+                Reset Hardware Registers
+              </button>
+            </div>
+            <!-- Frequency & Quantum Controls -->
+            <div class="flex items-center gap-space-lg flex-wrap">
+              <div class="flex items-center gap-3 bg-surface-container-low px-space-md py-1.5 rounded-xl">
+                <span class="material-symbols-outlined text-outline text-[18px]">tune</span>
+                <span class="font-label-mono text-label-mono text-on-surface-variant font-medium">Switch Interval:</span>
+                <input class="w-24 accent-primary cursor-pointer" id="speed-slider" max="5" min="1" type="range" value="3" onchange="adjustSpeed(this.value)"/>
+                <span class="font-counter-mono text-label-mono text-primary font-bold" id="speed-indicator">10 ms</span>
+              </div>
+              <div class="flex items-center gap-2 bg-surface-container-low px-space-md py-1.5 rounded-xl">
+                <span class="font-label-mono text-label-mono text-outline">Preemption:</span>
+                <span class="px-2 py-0.5 rounded-md bg-secondary-fixed text-on-secondary-fixed font-status-badge text-[10px] font-bold">TIMER TICK</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Visual Split: Architectural Registers & Mode Timeline -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+          
+          <!-- Left & Center 8-Cols: Register Stage & CPU Transfer Visualization -->
+          <div class="xl:col-span-8 flex flex-col gap-space-lg">
+            
+            <!-- Interactive CPU Context Transfer Engine -->
+            <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-md relative overflow-hidden">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-[20px]">memory</span>
+                  </div>
+                  <h2 class="font-headline-sm text-headline-sm text-on-surface">Architectural Register Bank &amp; Execution Pipeline</h2>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-1 rounded-full bg-surface-container text-primary font-label-mono text-[11px] font-bold" id="transfer-badge">STATE: IDLE / READY</span>
+                </div>
+              </div>
+
+              <!-- The Tri-Fold Visual Stage: T1 Source -> CPU Core Unit -> T2 Target -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-space-md relative p-2 bg-surface-container-low rounded-xl">
+                <!-- Source Thread: T1 (Yielding / Suspended) -->
+                <div class="flex flex-col gap-space-sm p-space-md rounded-xl bg-surface-container-lowest shadow-sm transition-all" id="card-thread-1">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <div class="w-3 h-3 rounded-full bg-primary"></div>
+                      <span class="font-headline-sm text-[14px] text-on-surface">Thread 1: Worker-Proc</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full bg-surface-container text-primary font-status-badge text-[10px]">TID 4012</span>
+                  </div>
+                  <div class="flex flex-col gap-1.5 pt-1">
+                    <div class="flex justify-between items-center p-1.5 rounded-lg bg-surface-container-low font-label-mono text-[11px]">
+                      <span class="text-outline">Prog Counter (PC)</span>
+                      <span class="font-bold text-primary" id="t1-pc">0x004012A0</span>
+                    </div>
+                    <div class="flex justify-between items-center p-1.5 rounded-lg bg-surface-container-low font-label-mono text-[11px]">
+                      <span class="text-outline">Stack Pointer (SP)</span>
+                      <span class="font-bold text-on-surface" id="t1-sp">0x7FFF5FB0</span>
+                    </div>
+                    <div class="flex justify-between items-center p-1.5 rounded-lg bg-surface-container-low font-label-mono text-[11px]">
+                      <span class="text-outline">Flags (PSW)</span>
+                      <span class="font-bold text-secondary" id="t1-psw">0x00000246 [IF,ZF]</span>
+                    </div>
+                  </div>
+                  <!-- General Purpose Registers Grid -->
+                  <div class="pt-1">
+                    <span class="font-label-mono text-[10px] text-outline uppercase font-semibold">General Purpose Registers</span>
+                    <div class="grid grid-cols-2 gap-1 mt-1 font-label-mono text-[10px]">
+                      <div class="p-1 rounded bg-surface-container-low flex justify-between"><span>R0:</span><span class="text-on-surface font-semibold" id="t1-r0">0x0000001C</span></div>
+                      <div class="p-1 rounded bg-surface-container-low flex justify-between"><span>R1:</span><span class="text-on-surface font-semibold" id="t1-r1">0x004033C0</span></div>
+                      <div class="p-1 rounded bg-surface-container-low flex justify-between"><span>R2:</span><span class="text-on-surface font-semibold" id="t1-r2">0xFFFFFFFF</span></div>
+                      <div class="p-1 rounded bg-surface-container-low flex justify-between"><span>R3:</span><span class="text-on-surface font-semibold" id="t1-r3">0x00000004</span></div>
+                    </div>
+                  </div>
+                  <div class="mt-auto pt-2 flex items-center justify-between text-on-surface-variant font-label-mono text-[11px]">
+                    <span>State: <strong class="text-primary font-bold" id="t1-status">RUNNING</strong></span>
+                    <span class="material-symbols-outlined text-[16px] text-primary" id="t1-state-icon">play_circle</span>
+                  </div>
+                </div>
+
+                <!-- Central Unit: CPU Hardware Core -->
+                <div class="flex flex-col items-center justify-between p-space-md rounded-xl bg-surface-container-lowest shadow-sm relative overflow-hidden" id="card-cpu-core">
+                  <div class="w-full flex items-center justify-between">
+                    <span class="font-status-badge text-[10px] tracking-wider uppercase text-outline font-bold">Physical Core 0</span>
+                    <div class="flex items-center gap-1">
+                      <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                      <span class="font-label-mono text-[10px] text-primary font-semibold">L1 CACHE: HOT</span>
+                    </div>
+                  </div>
+                  <!-- Core Microchip Schematic Graphic -->
+                  <div class="flex flex-col items-center justify-center my-3 text-center">
+                    <div class="w-20 h-20 rounded-2xl bg-surface-container flex flex-col items-center justify-center shadow-inner relative group">
+                      <span class="material-symbols-outlined text-[36px] text-primary transition-transform duration-300 group-hover:scale-110">developer_board</span>
+                      <span class="font-label-mono text-[9px] uppercase tracking-wider text-outline font-bold mt-0.5">ALU / REGS</span>
+                    </div>
+                    <div class="mt-2 flex flex-col items-center">
+                      <span class="font-label-mono text-[11px] text-on-surface font-bold" id="cpu-current-thread">Thread 1 Active</span>
+                      <span class="font-label-mono text-[10px] text-outline">Clock: 3.40 GHz | Ring-0 Kernel</span>
+                    </div>
+                  </div>
+                  <!-- Active Microcode Stage Box -->
+                  <div class="w-full p-2 rounded-lg bg-surface-container-low flex flex-col gap-1 text-center">
+                    <span class="font-label-mono text-[10px] text-outline uppercase font-semibold">Current Bus Action</span>
+                    <div class="font-label-mono text-[11px] text-primary font-bold truncate" id="bus-action-text">
+                      Executing Instructions...
+                    </div>
+                  </div>
+                  <!-- Transfer Flow Guidance Arrows -->
+                  <div class="w-full flex justify-between items-center text-outline pt-2 px-1">
+                    <div class="flex items-center gap-1 text-[10px] font-label-mono text-outline">
+                      <span class="material-symbols-outlined text-[14px]">arrow_downward</span> TCB Push
+                    </div>
+                    <div class="flex items-center gap-1 text-[10px] font-label-mono text-outline">
+                      TCB Pop <span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Target Thread: T2 (Next in Queue / Incoming) -->
+                <div class="flex flex-col gap-space-sm p-space-md rounded-xl bg-surface-container-lowest shadow-sm transition-all opacity-85" id="card-thread-2">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                      <div class="w-3 h-3 rounded-full bg-secondary"></div>
+                      <span class="font-headline-sm text-[14px] text-on-surface">Thread 2: Render-Task</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-full bg-surface-container text-secondary font-status-badge text-[10px]">TID 4018</span>
+                  </div>
+                  <div class="flex flex-col gap-1.5 pt-1">
+                    <div class="flex justify-between items-center p-1.5 rounded-lg bg-surface-container-low font-label-mono text-[11px]">
+                      <span class="text-outline">Prog Counter (PC)</span>
+                      <span class="font-bold text-secondary" id="t2-pc">0x00408B14</span>
+                    </div>
+                    <div class="flex justify-between items-center p-1.5 rounded-lg bg-surface-container-low font-label-mono text-[11px]">
+                      <span class="text-outline">Stack Pointer (SP)</span>
+                      <span class="font-bold text-on-surface" id="t2-sp">0x7FFF9CA0</span>
+                    </div>
+                    <div class="flex justify-between items-center p-1.5 rounded-lg bg-surface-container-low font-label-mono text-[11px]">
+                      <span class="text-outline">Flags (PSW)</span>
+                      <span class="font-bold text-on-surface-variant" id="t2-psw">0x00000202 [IF]</span>
+                    </div>
+                  </div>
+                  <!-- General Purpose Registers Grid -->
+                  <div class="pt-1">
+                    <span class="font-label-mono text-[10px] text-outline uppercase font-semibold">General Purpose Registers</span>
+                    <div class="grid grid-cols-2 gap-1 mt-1 font-label-mono text-[10px]">
+                      <div class="p-1 rounded bg-surface-container-low flex justify-between"><span>R0:</span><span class="text-on-surface font-semibold" id="t2-r0">0x000001E8</span></div>
+                      <div class="p-1 rounded bg-surface-container-low flex justify-between"><span>R1:</span><span class="text-on-surface font-semibold" id="t2-r1">0x0040A200</span></div>
+                      <div class="p-1 rounded bg-surface-container-low flex justify-between"><span>R2:</span><span class="text-on-surface font-semibold" id="t2-r2">0x00000000</span></div>
+                      <div class="p-1 rounded bg-surface-container-low flex justify-between"><span>R3:</span><span class="text-on-surface font-semibold" id="t2-r3">0x00000080</span></div>
+                    </div>
+                  </div>
+                  <div class="mt-auto pt-2 flex items-center justify-between text-on-surface-variant font-label-mono text-[11px]">
+                    <span>State: <strong class="text-outline font-bold" id="t2-status">READY QUEUE</strong></span>
+                    <span class="material-symbols-outlined text-[16px] text-outline" id="t2-state-icon">hourglass_empty</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Overhead Breakdown Indicator Strip -->
+              <div class="p-space-sm rounded-xl bg-surface-container-low flex flex-col md:flex-row items-center justify-between gap-space-sm text-body-sm">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-primary text-[18px]">info</span>
+                  <span class="font-body-md text-on-surface-variant font-medium">Context Switch Cost Decomposition:</span>
+                </div>
+                <div class="flex flex-wrap items-center gap-space-md font-label-mono text-label-mono">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+                    <span>Register Serialization: <strong class="text-on-surface">0.45 µs</strong></span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+                    <span>TLB / Cache Invalidation: <strong class="text-on-surface">0.82 µs</strong></span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-error"></span>
+                    <span>Scheduler Logic: <strong class="text-on-surface">0.55 µs</strong></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mode Timeline: User Mode vs Kernel Mode vs Context Switch Gap -->
+            <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-md">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-secondary">
+                    <span class="material-symbols-outlined text-[20px]">view_timeline</span>
+                  </div>
+                  <h3 class="font-headline-sm text-headline-sm text-on-surface">Execution Timeline &amp; Mode Switching Overhead</h3>
+                </div>
+                <div class="flex items-center gap-3 font-label-mono text-[11px]">
+                  <span class="flex items-center gap-1 text-on-surface"><span class="w-3 h-3 rounded bg-primary"></span> User Mode (T1)</span>
+                  <span class="flex items-center gap-1 text-on-surface"><span class="w-3 h-3 rounded bg-error"></span> Kernel Switch Gap</span>
+                  <span class="flex items-center gap-1 text-on-surface"><span class="w-3 h-3 rounded bg-secondary"></span> User Mode (T2)</span>
+                </div>
+              </div>
+
+              <!-- Gantt-Style Bar Graphic -->
+              <div class="w-full flex flex-col gap-2">
+                <div class="h-10 w-full bg-surface-container-low rounded-lg p-1 flex items-center gap-1">
+                  <!-- Thread 1 User Space -->
+                  <div class="h-full bg-primary text-on-primary rounded font-label-mono text-[11px] font-semibold flex items-center justify-center transition-all" id="timeline-t1" style="width: 44%;">
+                    Thread 1 Executing (User Mode)
+                  </div>
+                  <!-- Kernel Switch Inactive Zone -->
+                  <div class="h-full bg-error-container text-error rounded font-label-mono text-[10px] font-bold flex items-center justify-center text-center px-1 shadow-sm transition-all" id="timeline-gap" style="width: 14%;">
+                    <span class="material-symbols-outlined text-[13px] mr-0.5">lock_reset</span> Overhead Gap (1.8µs)
+                  </div>
+                  <!-- Thread 2 User Space -->
+                  <div class="h-full bg-secondary text-on-primary rounded font-label-mono text-[11px] font-semibold flex items-center justify-center transition-all" id="timeline-t2" style="width: 42%;">
+                    Thread 2 Executing (User Mode)
+                  </div>
+                </div>
+                <!-- Timeline Millisecond Grid Markers -->
+                <div class="flex justify-between font-label-mono text-[10px] text-outline px-1">
+                  <span>0.00 ms (Quantum Start)</span>
+                  <span>4.20 ms</span>
+                  <span class="text-error font-semibold">Interrupt: 4.80 ms</span>
+                  <span>6.62 ms (Dispatch)</span>
+                  <span>10.00 ms (Quantum End)</span>
+                </div>
+              </div>
+              <div class="p-space-sm rounded-xl bg-surface-container-low text-body-sm text-on-surface-variant flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-outline text-[16px]">psychology</span>
+                  <span><strong>Pedagogical Insight:</strong> Zero computation occurs during the red gap. The CPU spends cycles purely copying pointers and saving processor state.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Right 4-Cols: TCB Memory Pipeline & Instruction Trace -->
+          <div class="xl:col-span-4 flex flex-col gap-space-lg">
+            
+            <!-- Thread Control Block (TCB) Stack Frame Viewer -->
+            <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-md">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-[20px]">layers</span>
+                  </div>
+                  <h3 class="font-headline-sm text-headline-sm text-on-surface">TCB Memory Pipeline</h3>
+                </div>
+                <span class="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface font-label-mono text-[10px]">Kernel Ring 0</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">
+                Memory blocks allocated inside kernel address space storing Thread Control Blocks (TCB):
+              </p>
+              <div class="flex flex-col gap-2">
+                <!-- TCB 1 Box -->
+                <div class="p-3 rounded-xl bg-primary-container text-on-primary shadow-sm flex flex-col gap-1 transition-all" id="tcb-box-1">
+                  <div class="flex items-center justify-between">
+                    <span class="font-label-mono text-[12px] font-bold">TCB_0x008A [T1: Worker-Proc]</span>
+                    <span class="px-1.5 py-0.5 rounded bg-on-primary/20 text-on-primary font-label-mono text-[10px]" id="tcb-1-badge">SAVED TO RAM</span>
+                  </div>
+                  <div class="font-label-mono text-[11px] opacity-90 grid grid-cols-2 gap-1 pt-1">
+                    <div id="tcb-1-sp">SP: 0x7FFF5FB0</div>
+                    <div id="tcb-1-pc">PC: 0x004012A0</div>
+                    <div>Priority: High (Level 2)</div>
+                    <div>Registers: R0-R15 Pushed</div>
+                  </div>
+                </div>
+                <!-- TCB 2 Box -->
+                <div class="p-3 rounded-xl bg-surface-container-low text-on-surface shadow-sm flex flex-col gap-1 transition-all" id="tcb-box-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-label-mono text-[12px] font-bold text-on-surface" id="tcb-2-title">TCB_0x009C [T2: Render-Task]</span>
+                    <span class="px-1.5 py-0.5 rounded bg-surface-container text-secondary font-label-mono text-[10px]" id="tcb-2-badge">QUEUED FOR RESTORE</span>
+                  </div>
+                  <div class="font-label-mono text-[11px] text-on-surface-variant grid grid-cols-2 gap-1 pt-1">
+                    <div id="tcb-2-sp">SP: 0x7FFF9CA0</div>
+                    <div id="tcb-2-pc">PC: 0x00408B14</div>
+                    <div>Priority: Normal (Level 3)</div>
+                    <div>Registers: Pending Pop</div>
+                  </div>
+                </div>
+              </div>
+              <div class="pt-1 flex items-center justify-between font-label-mono text-[11px] text-outline">
+                <span>Kernel Stack Limit: 8 KB</span>
+                <span class="text-primary font-semibold">Zero Frame Overflow</span>
+              </div>
+            </div>
+
+            <!-- Real-Time Hardware Assembly Trace Log -->
+            <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-[20px]">terminal</span>
+                  </div>
+                  <h3 class="font-headline-sm text-headline-sm text-on-surface">Hardware Assembly Trace</h3>
+                </div>
+                <span class="font-label-mono text-[10px] text-primary bg-surface-container px-2 py-0.5 rounded-full font-bold">x86_64</span>
+              </div>
+              <!-- Code Stream Window -->
+              <div class="bg-inverse-surface text-inverse-on-surface p-3 rounded-xl font-label-mono text-[11px] flex flex-col gap-1.5 h-56 overflow-y-auto shadow-inner" id="assembly-log">
+                <div class="flex items-center gap-2 text-outline"><span class="text-[9px]">0.00µs</span><span>; [Interrupt Triggered: APIC Timer]</span></div>
+                <div class="flex items-center gap-2 text-emerald-400 font-semibold"><span class="text-[9px] text-outline">0.12µs</span><span>pushfq                ; Save EFLAGS</span></div>
+                <div class="flex items-center gap-2 text-emerald-400"><span class="text-[9px] text-outline">0.28µs</span><span>push rax, rbx, rcx    ; Push Gen Registers</span></div>
+                <div class="flex items-center gap-2 text-blue-300"><span class="text-[9px] text-outline">0.45µs</span><span>mov [tcb1 + 0x18], rsp ; Store Stack Ptr</span></div>
+                <div class="flex items-center gap-2 text-amber-300 font-bold"><span class="text-[9px] text-outline">0.82µs</span><span>call os_schedule_next  ; Pick next TCB</span></div>
+                <div class="flex items-center gap-2 text-purple-300"><span class="text-[9px] text-outline">1.22µs</span><span>mov rsp, [tcb2 + 0x18] ; Switch Stack Ptr</span></div>
+                <div class="flex items-center gap-2 text-emerald-400"><span class="text-[9px] text-outline">1.54µs</span><span>pop rcx, rbx, rax     ; Restore Registers</span></div>
+                <div class="flex items-center gap-2 text-emerald-400 font-semibold"><span class="text-[9px] text-outline">1.75µs</span><span>popfq                 ; Restore EFLAGS</span></div>
+                <div class="flex items-center gap-2 text-primary-fixed-dim font-bold"><span class="text-[9px] text-outline">1.82µs</span><span>iretq                 ; Return to User Mode (T2)</span></div>
+              </div>
+              <span class="font-label-mono text-[10px] text-outline text-right">Interrupt Vector Table: INT 0x20</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Bottom Telemetry & Educational Analytics Section -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-space-lg">
+          <!-- Card 1: Voluntary vs Involuntary Switches -->
+          <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm">
+            <div class="flex items-center justify-between">
+              <span class="font-headline-sm text-headline-sm text-on-surface">Switch Causality</span>
+              <span class="material-symbols-outlined text-primary text-[20px]">pie_chart</span>
+            </div>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">
+              Distribution between voluntary I/O pauses and involuntary preemptions:
+            </p>
+            <div class="flex items-center gap-space-lg my-1">
+              <div class="relative w-20 h-20 flex items-center justify-center">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                  <path class="text-surface-container" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="4.5"></path>
+                  <path class="text-primary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="78, 100" stroke-width="4.5"></path>
+                  <path class="text-secondary" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="22, 100" stroke-dashoffset="-78" stroke-width="4.5"></path>
+                </svg>
+                <div class="absolute font-counter-mono text-label-mono font-bold text-on-surface">1.4K</div>
+              </div>
+              <div class="flex flex-col gap-1.5 font-label-mono text-[11px]">
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+                  <span class="text-on-surface">Voluntary (I/O Wait): <strong>78%</strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+                  <span class="text-on-surface">Involuntary (Quantum): <strong>22%</strong></span>
+                </div>
+              </div>
+            </div>
+            <div class="p-2 rounded bg-surface-container-low font-body-sm text-body-sm text-on-surface-variant">
+              Frequent voluntary yielding preserves cache locality better than sudden timer interrupts.
+            </div>
+          </div>
+
+          <!-- Card 2: Cache & Memory Miss Degradation -->
+          <div class="bg-surface-container-lowest p-space-lg rounded-xl shadow-sm flex flex-col gap-space-sm">
+            <div class="flex items-center justify-between">
+              <span class="font-headline-sm text-headline-sm text-on-surface">Direct vs Indirect Cost</span>
+              <span class="material-symbols-outlined text-secondary text-[20px]">electric_meter</span>
+            </div>
+            <p class="font-body-sm text-body-sm text-on-surface-variant">
+              Indirect overhead incurred due to cold L1/L2 caches and Translation Lookaside Buffer flushes:
+            </p>
+            <div class="flex flex-col gap-2 pt-1 font-label-mono text-[11px]">
+              <div>
+                <div class="flex justify-between text-on-surface mb-1">
+                  <span>L1 Instruction Miss Penalty:</span>
+                  <span class="font-bold text-primary">+12.4% Cycles</span>
+                </div>
+                <div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+                  <div class="bg-primary h-full rounded-full" style="width: 58%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-on-surface mb-1">
+                  <span>TLB Reload Invalidation Delay:</span>
+                  <span class="font-bold text-secondary">+8.2% Cycles</span>
+                </div>
+                <div class="w-full bg-surface-container-low h-2 rounded-full overflow-hidden">
+                  <div class="bg-secondary h-full rounded-full" style="width: 38%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="p-2 rounded bg-surface-container-low font-body-sm text-body-sm text-on-surface-variant mt-auto">
+              Indirect overhead often exceeds the direct register saving time by <strong>3x to 5x</strong>.
+            </div>
+          </div>
+
+          <!-- Card 3: Educational Systems Guide Callout -->
+          <div class="bg-gradient-to-br from-surface-container-lowest to-surface-container p-space-lg rounded-xl shadow-sm flex flex-col justify-between gap-space-sm">
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-2 text-primary font-headline-sm text-[14px]">
+                <span class="material-symbols-outlined text-[20px]">school</span>
+                <span>OS Architect Note</span>
+              </div>
+              <h4 class="font-headline-sm text-headline-sm text-on-surface">Thread vs Process Switch</h4>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">
+                Why is switching multithreaded workers faster than separate UNIX processes? Threads in the same process share the same virtual address space, eliminating the heavy cost of complete MMU page table pointer (CR3 register) reloading.
+              </p>
+            </div>
+            <div class="flex items-center justify-between pt-2">
+              <span class="font-label-mono text-[11px] text-outline">ThreadLab Module #07</span>
+              <a class="inline-flex items-center gap-1 font-headline-sm text-[12px] text-primary hover:underline" href="/pages/learning.html">
+                <span>View Memory Lab</span>
+                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/navigation.js"></script>
+  <script>
+    let currentStep = 1;
+    let isAutoPlaying = false;
+    let timerInterval = null;
+
+    const stepDescriptions = [
+      {
+        badge: "PHASE 1: INTERRUPT FIRED",
+        bus: "Syscall / Timer Interrupt triggered! Transition to Kernel Ring-0.",
+        t1State: "INTERRUPTED",
+        t2State: "READY QUEUE",
+        cpu: "Core: Saving Program Counter",
+        log: '<div class="flex items-center gap-2 text-error font-semibold"><span class="text-[9px] text-outline">0.05µs</span><span>; [OS Preempt Tick] Switch to Ring 0</span></div>'
+      },
+      {
+        badge: "PHASE 2: SERIALIZING T1 REGS",
+        bus: "Dumping R0-R15 & PSW into TCB_0x008A memory slot.",
+        t1State: "SAVING CONTEXT",
+        t2State: "WAITING IN QUEUE",
+        cpu: "Core: Pushing T1 Context to RAM",
+        log: '<div class="flex items-center gap-2 text-emerald-400 font-semibold"><span class="text-[9px] text-outline">0.42µs</span><span>mov [tcb1+0x20], rax   ; Stored T1 State</span></div>'
+      },
+      {
+        badge: "PHASE 3: SCHEDULER DISPATCH",
+        bus: "Round Robin scheduler evaluating Ready Queue. Next candidate: T2.",
+        t1State: "SAVED (SUSPENDED)",
+        t2State: "SCHEDULED CANDIDATE",
+        cpu: "Core: Executing Scheduler Algorithm",
+        log: '<div class="flex items-center gap-2 text-amber-300 font-bold"><span class="text-[9px] text-outline">0.95µs</span><span>call find_highest_pri_task() -> TID 4018</span></div>'
+      },
+      {
+        badge: "PHASE 4: RESTORING T2 STATE",
+        bus: "Popping registers from TCB_0x009C into Core. Returning to User Mode.",
+        t1State: "READY (IN QUEUE)",
+        t2State: "EXECUTING (ACTIVE)",
+        cpu: "Core: Thread 2 Active",
+        log: '<div class="flex items-center gap-2 text-purple-300 font-bold"><span class="text-[9px] text-outline">1.82µs</span><span>iretq ; Switched to TID 4018 [T2 Render]</span></div>'
+      }
+    ];
+
+    async function updatePhase(stepIndex) {
+      currentStep = stepIndex;
+
+      // Update Stepper Navigation styling
+      for (let i = 1; i <= 4; i++) {
+        const node = document.getElementById('step-node-' + i);
+        if (node) {
+          if (i === currentStep) {
+            node.className = "step-card flex items-center gap-3 p-space-sm rounded-xl bg-primary-container text-on-primary shadow-sm transition-all cursor-pointer";
+            const num = node.querySelector('.font-counter-mono');
+            if (num) num.className = "w-8 h-8 rounded-lg bg-on-primary/20 flex items-center justify-center font-counter-mono text-[13px] font-bold text-on-primary";
+          } else {
+            node.className = "step-card flex items-center gap-3 p-space-sm rounded-xl bg-surface-container-low text-on-surface shadow-sm transition-all cursor-pointer";
+            const num = node.querySelector('.font-counter-mono');
+            if (num) num.className = "w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center font-counter-mono text-[13px] font-bold text-outline";
+          }
+        }
+      }
+
+      const info = stepDescriptions[currentStep - 1];
+      document.getElementById('transfer-badge').innerText = info.badge;
+      document.getElementById('bus-action-text').innerText = info.bus;
+      document.getElementById('cpu-current-thread').innerText = info.cpu;
+      document.getElementById('t1-status').innerText = info.t1State;
+      document.getElementById('t2-status').innerText = info.t2State;
+
+      const cardT1 = document.getElementById('card-thread-1');
+      const cardT2 = document.getElementById('card-thread-2');
+      const tcbBox1 = document.getElementById('tcb-box-1');
+      const tcbBox2 = document.getElementById('tcb-box-2');
+
+      if (currentStep === 1 || currentStep === 2) {
+        cardT1.classList.remove('opacity-60');
+        cardT2.classList.add('opacity-60');
+        tcbBox1.className = "p-3 rounded-xl bg-primary-container text-on-primary shadow-sm flex flex-col gap-1 transition-all";
+        tcbBox2.className = "p-3 rounded-xl bg-surface-container-low text-on-surface shadow-sm flex flex-col gap-1 transition-all";
+      } else if (currentStep === 4) {
+        cardT1.classList.add('opacity-60');
+        cardT2.classList.remove('opacity-60');
+        tcbBox1.className = "p-3 rounded-xl bg-surface-container-low text-on-surface shadow-sm flex flex-col gap-1 transition-all";
+        tcbBox2.className = "p-3 rounded-xl bg-secondary-container text-on-secondary shadow-sm flex flex-col gap-1 transition-all";
+      }
+
+      const assemblyLog = document.getElementById('assembly-log');
+      if (assemblyLog && info.log) {
+        assemblyLog.insertAdjacentHTML('beforeend', info.log);
+        assemblyLog.scrollTop = assemblyLog.scrollHeight;
+      }
+
+      // Sync with real backend Context Switch API
+      try {
+        const res = await ThreadLabAPI.stepContextSwitch(currentStep);
+        if (res && res.data) {
+          const d = res.data;
+          if (d.t1_registers) {
+            if (d.t1_registers.PC) document.getElementById('t1-pc').innerText = d.t1_registers.PC;
+            if (d.t1_registers.SP) document.getElementById('t1-sp').innerText = d.t1_registers.SP;
+            if (d.t1_registers.AX) document.getElementById('t1-r0').innerText = d.t1_registers.AX;
+            if (d.t1_registers.BX) document.getElementById('t1-r1').innerText = d.t1_registers.BX;
+          }
+          if (d.t2_registers) {
+            if (d.t2_registers.PC) document.getElementById('t2-pc').innerText = d.t2_registers.PC;
+            if (d.t2_registers.SP) document.getElementById('t2-sp').innerText = d.t2_registers.SP;
+            if (d.t2_registers.AX) document.getElementById('t2-r0').innerText = d.t2_registers.AX;
+            if (d.t2_registers.BX) document.getElementById('t2-r1').innerText = d.t2_registers.BX;
+          }
+          if (d.overhead_us) {
+            document.getElementById('stat-latency').innerText = `${d.overhead_us} µs`;
+          }
+        }
+      } catch (e) {
+        console.warn("Backend stepContextSwitch local fallback:", e);
+      }
+    }
+
+    function jumpToPhase(p) {
+      updatePhase(p);
+    }
+
+    function executeNextPhase() {
+      let next = currentStep + 1;
+      if (next > 4) next = 1;
+      updatePhase(next);
+    }
+
+    function toggleAutoPlay() {
+      const btnAuto = document.getElementById('btn-toggle-auto');
+      const autoIcon = document.getElementById('auto-icon');
+      const autoText = document.getElementById('auto-text');
+      const speedSlider = document.getElementById('speed-slider');
+
+      isAutoPlaying = !isAutoPlaying;
+      if (isAutoPlaying) {
+        autoIcon.innerText = "pause";
+        autoText.innerText = "Pause Simulation";
+        btnAuto.classList.add('bg-primary', 'text-on-primary');
+        btnAuto.classList.remove('bg-surface-container-low', 'text-on-surface');
+
+        const delay = 6000 / parseInt(speedSlider ? speedSlider.value : 3);
+        timerInterval = setInterval(() => {
+          let next = currentStep + 1;
+          if (next > 4) next = 1;
+          updatePhase(next);
+        }, delay);
+      } else {
+        clearInterval(timerInterval);
+        autoIcon.innerText = "play_arrow";
+        autoText.innerText = "Auto Play Sequence";
+        btnAuto.classList.remove('bg-primary', 'text-on-primary');
+        btnAuto.classList.add('bg-surface-container-low', 'text-on-surface');
+      }
+    }
+
+    async function resetRegisters() {
+      if (isAutoPlaying) {
+        toggleAutoPlay();
+      }
+      updatePhase(1);
+      const assemblyLog = document.getElementById('assembly-log');
+      if (assemblyLog) {
+        assemblyLog.innerHTML = `
+          <div class="flex items-center gap-2 text-outline"><span class="text-[9px]">0.00µs</span><span>; [Simulation Hardware Reset complete]</span></div>
+          <div class="flex items-center gap-2 text-emerald-400 font-semibold"><span class="text-[9px] text-outline">0.12µs</span><span>pushfq                ; Save EFLAGS</span></div>
+          <div class="flex items-center gap-2 text-emerald-400"><span class="text-[9px] text-outline">0.28µs</span><span>push rax, rbx, rcx    ; Push Gen Registers</span></div>
+        `;
+      }
+      try {
+        await ThreadLabAPI.resetContextSwitch();
+      } catch (e) {
+        console.warn("Backend reset called locally:", e);
+      }
+    }
+
+    function adjustSpeed(val) {
+      const displayMap = { '1': '25 ms', '2': '18 ms', '3': '10 ms', '4': '5 ms', '5': '2 ms' };
+      document.getElementById('speed-indicator').innerText = displayMap[val] || '10 ms';
+      if (isAutoPlaying) {
+        clearInterval(timerInterval);
+        const delay = 6000 / parseInt(val);
+        timerInterval = setInterval(() => {
+          let next = currentStep + 1;
+          if (next > 4) next = 1;
+          updatePhase(next);
+        }, delay);
+      }
+    }
+  </script>
+</body>
+</html>
+

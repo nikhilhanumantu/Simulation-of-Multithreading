@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <meta content="web_dashboard" name="shell-type"/>
+  <title>Thread Lifecycle - ThreadLab Multithreading Simulator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+  <style>
+    @layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}
+    ::-webkit-scrollbar{display:none;}
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "inverse-on-surface": "#ecf1ff",
+            "secondary-container": "#8455ef",
+            "on-primary-container": "#eeefff",
+            "on-tertiary": "#ffffff",
+            "on-error-container": "#93000a",
+            "surface-bright": "#f9f9ff",
+            "secondary-fixed": "#e9ddff",
+            "secondary": "#6b38d4",
+            "primary": "#004ac6",
+            "surface-container": "#e7eeff",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed": "#00174b",
+            "primary-fixed": "#dbe1ff",
+            "inverse-primary": "#b4c5ff",
+            "primary-fixed-dim": "#b4c5ff",
+            "surface-container-highest": "#d8e3fb",
+            "background": "#f9f9ff",
+            "on-tertiary-fixed": "#21005e",
+            "tertiary-fixed": "#e8ddff",
+            "on-tertiary-container": "#f5edff",
+            "on-surface-variant": "#434655",
+            "tertiary": "#5d41ab",
+            "surface": "#f9f9ff",
+            "surface-tint": "#0053db",
+            "on-background": "#111c2d",
+            "surface-container-high": "#dee8ff",
+            "tertiary-container": "#765ac5",
+            "primary-container": "#2563eb",
+            "on-error": "#ffffff",
+            "on-secondary": "#ffffff",
+            "on-surface": "#111c2d",
+            "surface-container-low": "#f0f3ff",
+            "tertiary-fixed-dim": "#cebdff",
+            "surface-dim": "#cfdaf2",
+            "outline-variant": "#c3c6d7",
+            "on-primary": "#ffffff",
+            "on-primary-fixed-variant": "#003ea8",
+            "error": "#ba1a1a",
+            "on-secondary-fixed": "#23005c",
+            "inverse-surface": "#263143",
+            "on-secondary-container": "#fffbff",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#d0bcff",
+            "on-tertiary-fixed-variant": "#4f319c",
+            "on-secondary-fixed-variant": "#5516be",
+            "surface-variant": "#d8e3fb",
+            "outline": "#737686"
+          },
+          borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+          spacing: {
+            "space-2xl": "2.5rem",
+            "space-md": "0.75rem",
+            "space-xl": "1.75rem",
+            "margin-desktop": "2rem",
+            "margin": "1rem",
+            "space-lg": "1.25rem",
+            "gutter-desktop": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "gutter": "1rem"
+          },
+          fontFamily: {
+            "headline-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "counter-mono": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "display-mobile": ["Inter"],
+            "body-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "status-badge": ["Inter"],
+            "display": ["Inter"],
+            "label-mono": ["JetBrains Mono"],
+            "headline-md": ["Inter"]
+          },
+          fontSize: {
+            "headline-sm": ["16px", { lineHeight: "24px", letterSpacing: "-0.005em", fontWeight: "600" }],
+            "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.015em", fontWeight: "600" }],
+            "counter-mono": ["18px", { lineHeight: "24px", fontWeight: "600" }],
+            "body-sm": ["12px", { lineHeight: "18px", fontWeight: "400" }],
+            "display-mobile": ["26px", { lineHeight: "34px", letterSpacing: "-0.01em", fontWeight: "700" }],
+            "body-md": ["13px", { lineHeight: "20px", fontWeight: "400" }],
+            "body-lg": ["15px", { lineHeight: "24px", fontWeight: "400" }],
+            "status-badge": ["11px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "600" }],
+            "display": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+            "label-mono": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+            "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "600" }]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+  <!-- SIDEBAR NAVIGATION -->
+  <aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_16px_rgba(37,99,235,0.06)]">
+    <div class="flex flex-col">
+      <a href="/" class="h-16 flex items-center px-space-lg gap-space-sm bg-surface-container-lowest border-b border-surface-container-high/40">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white shadow-sm font-bold text-sm">
+          TL
+        </div>
+        <div class="flex flex-col">
+          <span class="font-headline-sm text-headline-sm text-on-surface leading-tight tracking-tight">ThreadLab</span>
+          <span class="font-label-mono text-label-mono text-outline leading-none text-[10px]">Simulation of Multithreading</span>
+        </div>
+      </a>
+      <div class="px-space-md py-space-xs">
+        <div class="px-space-sm py-space-xs font-label-mono text-label-mono uppercase tracking-wider text-outline text-[10px]">Simulations &amp; Labs</div>
+      </div>
+      <nav class="px-space-md flex flex-col gap-1">
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="dashboard" href="/dashboard">
+          <span class="material-symbols-outlined text-[19px]">space_dashboard</span>
+          <span class="font-body-md text-body-md">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="thread-manager" href="/thread-manager">
+          <span class="material-symbols-outlined text-[19px]">tune</span>
+          <span class="font-body-md text-body-md">Thread Manager</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="cpu-scheduling" href="/cpu-scheduling">
+          <span class="material-symbols-outlined text-[19px]">memory</span>
+          <span class="font-body-md text-body-md">CPU Scheduler</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl transition-all bg-gradient-to-r from-primary-container to-secondary text-on-primary shadow-[0_4px_12px_rgba(37,99,235,0.25)] font-semibold" data-path="thread-lifecycle" href="/thread-lifecycle">
+          <span class="material-symbols-outlined text-[19px]">timeline</span>
+          <span class="font-body-md text-body-md">Thread Lifecycle</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="synchronization" href="/synchronization">
+          <span class="material-symbols-outlined text-[19px]">lock_reset</span>
+          <span class="font-body-md text-body-md">Synchronization Lab</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="deadlock" href="/deadlock">
+          <span class="material-symbols-outlined text-[19px]">warning</span>
+          <span class="font-body-md text-body-md">Deadlock Lab</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="analytics" href="/analytics">
+          <span class="material-symbols-outlined text-[19px]">analytics</span>
+          <span class="font-body-md text-body-md">Analytics</span>
+        </a>
+      </nav>
+    </div>
+    
+    <!-- Sidebar Footer -->
+    <div class="p-space-md flex flex-col gap-space-sm">
+      <div class="bg-surface-container-low rounded-xl p-space-md shadow-[0_2px_8px_rgba(37,99,235,0.04)]">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-status-badge text-status-badge text-primary uppercase font-bold tracking-wider">OS Simulator</span>
+          <span class="material-symbols-outlined text-secondary text-[16px] animate-spin">sync</span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">Learn • Simulate • Visualize concurrent thread safety.</p>
+      </div>
+      <div class="flex items-center justify-between p-space-sm rounded-xl bg-surface-container-lowest shadow-[0_2px_6px_rgba(0,0,0,0.03)]">
+        <div class="flex items-center gap-space-sm">
+          <div class="relative">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white font-bold text-xs">N</div>
+            <span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface-container-lowest"></span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-body-md text-body-md text-on-surface font-semibold leading-tight">Nikhil</span>
+            <span class="font-status-badge text-status-badge text-on-surface-variant leading-none">Student Role</span>
+          </div>
+        </div>
+        <button class="text-outline hover:text-primary transition-colors p-1 rounded-lg hover:bg-surface-container-low">
+          <span class="material-symbols-outlined text-[18px]">expand_more</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOP HEADER & MAIN VIEW -->
+  <div class="pl-64">
+    <header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(37,99,235,0.04)] z-40 flex items-center justify-between px-space-lg">
+      <div class="flex items-center gap-space-md">
+        <div class="flex items-center gap-2 font-body-sm text-body-sm text-outline">
+          <a href="/" class="hover:text-primary transition-colors cursor-pointer">Platform</a>
+          <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+          <span class="text-on-surface font-semibold">Multithreading Workbench</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-lg">
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span>
+          <input class="h-9 pl-9 pr-12 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm text-body-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search simulation, primitives..." type="text"/>
+          <span class="absolute right-2 px-1.5 py-0.5 rounded-md bg-surface-container-lowest text-outline font-label-mono text-[11px] shadow-sm">⌘K</span>
+        </div>
+        <div class="flex items-center gap-space-sm">
+          <button class="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all">
+            <span class="material-symbols-outlined text-[20px]">notifications</span>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface-container-lowest"></span>
+          </button>
+          <button class="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" onclick="window.location.href='/learning-mode'">
+            <span class="material-symbols-outlined text-[20px]">help</span>
+          </button>
+        </div>
+        <div class="h-6 w-[1px] bg-surface-container"></div>
+        <div class="flex items-center gap-space-sm bg-surface-container-low py-1 px-space-sm rounded-full">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white font-bold text-xs">N</div>
+          <div class="flex flex-col text-left">
+            <span class="font-body-sm text-body-sm font-semibold text-on-surface leading-tight">Nikhil</span>
+            <span class="font-status-badge text-[10px] text-primary uppercase font-bold leading-none">Lab Active</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="relative pt-16 w-full min-h-screen bg-background">
+      <div class="flex flex-col w-full p-6 md:p-8 space-y-6">
+        <!-- Top Banner / Navigation Path & Actions -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-primary-container/10 text-primary-container">
+                <span class="material-symbols-outlined text-lg">timeline</span>
+              </span>
+              <h1 class="font-headline-lg text-headline-lg text-on-surface">Thread Lifecycle</h1>
+              <span class="font-status-badge text-status-badge px-2.5 py-0.5 rounded-full bg-surface-container-high text-primary font-semibold uppercase tracking-wider">Interactive Model</span>
+            </div>
+            <p class="font-body-md text-body-md text-on-surface-variant">Visualize operating system thread states, scheduling dispatches, preemption, and blocking I/O transitions.</p>
+          </div>
+          <!-- Simulation Controls -->
+          <div class="flex items-center gap-2.5 bg-surface-container-lowest p-1.5 rounded-2xl shadow-sm">
+            <!-- Thread Select -->
+            <div class="flex items-center gap-1.5 px-3 py-1 bg-surface-container-low rounded-xl">
+              <span class="text-xs text-outline font-semibold">Select:</span>
+              <select id="threadSelect" class="bg-transparent font-label-mono text-sm font-bold text-primary focus:outline-none cursor-pointer" onchange="switchTargetThread(this.value)">
+                <option value="T1">T1 (Worker-Compute)</option>
+                <option value="T2">T2 (Renderer-Sync)</option>
+                <option value="T3">T3 (Disk-Writer)</option>
+                <option value="T4">T4 (Background-Job)</option>
+              </select>
+            </div>
+            <button class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-on-surface bg-surface-container-low hover:bg-surface-container-high transition-all font-body-sm text-body-sm font-medium" id="stepBtn">
+              <span class="material-symbols-outlined text-base text-primary">skip_next</span>
+              <span>Step Event</span>
+            </button>
+            <button class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-primary-container to-secondary text-on-primary shadow-md hover:shadow-lg transition-all font-body-sm text-body-sm font-semibold" id="playBtn">
+              <span class="material-symbols-outlined text-base" id="playIcon">play_arrow</span>
+              <span id="playText">Auto Play</span>
+            </button>
+            <button class="p-2 rounded-xl text-outline hover:text-on-surface hover:bg-surface-container-low transition-all" id="resetBtn" title="Reset Simulation">
+              <span class="material-symbols-outlined text-lg">refresh</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main State Diagram Canvas Card -->
+        <div class="relative bg-surface-container-lowest rounded-2xl p-6 md:p-8 shadow-sm overflow-hidden flex flex-col">
+          <div class="flex items-center justify-between mb-4 z-10">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-primary-container animate-pulse"></span>
+              <span class="font-headline-sm text-headline-sm text-on-surface">State Transition Diagram</span>
+              <span class="text-outline text-xs">• Active thread: <span class="font-label-mono text-label-mono font-bold text-primary" id="activeThreadLabel">T1 (Worker-Compute)</span></span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="hidden sm:inline-flex font-label-mono text-label-mono text-xs text-outline bg-surface-container-low px-2 py-1 rounded-lg">Quantum: 2ms | POSIX Kernel Model</span>
+              <div class="flex items-center gap-1">
+                <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span class="text-[11px] font-medium text-outline">Active State</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visual Interactive Graph Stage -->
+          <div class="relative w-full min-h-[420px] md:min-h-[460px] flex items-center justify-center py-6 select-none">
+            <!-- Curved SVG Arrows Network (Connecting States) -->
+            <svg class="absolute inset-0 w-full h-full pointer-events-none" preserveaspectratio="none" viewbox="0 0 960 440" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <lineargradient id="primaryFlow" x1="0%" x2="100%" y1="0%" y2="0%">
+                  <stop offset="0%" stop-color="#2563EB" stop-opacity="0.4"></stop>
+                  <stop offset="100%" stop-color="#2563EB" stop-opacity="1"></stop>
+                </lineargradient>
+                <lineargradient id="emeraldFlow" x1="0%" x2="100%" y1="0%" y2="0%">
+                  <stop offset="0%" stop-color="#2563EB"></stop>
+                  <stop offset="100%" stop-color="#10B981"></stop>
+                </lineargradient>
+                <lineargradient id="amberFlow" x1="0%" x2="100%" y1="0%" y2="100%">
+                  <stop offset="0%" stop-color="#10B981"></stop>
+                  <stop offset="100%" stop-color="#F59E0B"></stop>
+                </lineargradient>
+                <lineargradient id="returnFlow" x1="0%" x2="100%" y1="100%" y2="0%">
+                  <stop offset="0%" stop-color="#F59E0B"></stop>
+                  <stop offset="100%" stop-color="#2563EB"></stop>
+                </lineargradient>
+                <marker id="arrow-blue" markerheight="6" markerwidth="6" orient="auto-start-reverse" refx="7" refy="5" viewbox="0 0 10 10">
+                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#2563EB"></path>
+                </marker>
+                <marker id="arrow-emerald" markerheight="6" markerwidth="6" orient="auto-start-reverse" refx="7" refy="5" viewbox="0 0 10 10">
+                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#10B981"></path>
+                </marker>
+                <marker id="arrow-red" markerheight="6" markerwidth="6" orient="auto-start-reverse" refx="7" refy="5" viewbox="0 0 10 10">
+                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#EF4444"></path>
+                </marker>
+                <marker id="arrow-amber" markerheight="6" markerwidth="6" orient="auto-start-reverse" refx="7" refy="5" viewbox="0 0 10 10">
+                  <path d="M 0 1 L 9 5 L 0 9 z" fill="#F59E0B"></path>
+                </marker>
+              </defs>
+              <!-- 1. New -> Ready (Admit) -->
+              <path class="transition-all duration-300" d="M 175 140 C 230 140, 275 140, 315 140" fill="none" marker-end="url(#arrow-blue)" stroke="url(#primaryFlow)" stroke-dasharray="5 5" stroke-width="2.5"></path>
+              <!-- 2. Ready -> Running (Scheduler Dispatch) -->
+              <path d="M 435 140 C 475 140, 505 140, 545 140" fill="none" id="path-dispatch" marker-end="url(#arrow-emerald)" stroke="url(#emeraldFlow)" stroke-width="3"></path>
+              <!-- 3. Running -> Ready (Time Quantum Expired / Preempted) Curved Top Return -->
+              <path d="M 590 105 C 560 50, 420 50, 385 105" fill="none" marker-end="url(#arrow-blue)" stroke="#93C5FD" stroke-dasharray="4 4" stroke-width="2"></path>
+              <!-- 4. Running -> Terminated (Exit) -->
+              <path d="M 665 140 C 705 140, 745 140, 785 140" fill="none" marker-end="url(#arrow-red)" stroke="#EF4444" stroke-width="2.5"></path>
+              <!-- 5. Running -> Blocked (I/O or Event Wait) Curved Down -->
+              <path d="M 620 185 C 640 250, 580 300, 550 315" fill="none" marker-end="url(#arrow-amber)" stroke="url(#amberFlow)" stroke-dasharray="6 4" stroke-width="2.5"></path>
+              <!-- 6. Blocked -> Ready (I/O Completion) Curved Up to Ready -->
+              <path d="M 440 320 C 390 305, 360 250, 375 185" fill="none" marker-end="url(#arrow-blue)" stroke="url(#returnFlow)" stroke-dasharray="6 4" stroke-width="2.5"></path>
+            </svg>
+
+            <!-- Flow Labels floating over connectors -->
+            <div class="absolute top-[115px] left-[225px] -translate-y-1/2 pointer-events-none">
+              <span class="px-2 py-0.5 rounded-md bg-surface-container-low text-primary text-[11px] font-semibold tracking-tight shadow-sm">Admit</span>
+            </div>
+            <div class="absolute top-[115px] left-[465px] -translate-y-1/2 pointer-events-none">
+              <span class="px-2 py-0.5 rounded-md bg-surface-container-low text-primary text-[11px] font-semibold tracking-tight shadow-sm">Dispatch</span>
+            </div>
+            <div class="absolute top-[48px] left-[465px] -translate-y-1/2 pointer-events-none">
+              <span class="px-2.5 py-0.5 rounded-md bg-surface-container-highest text-outline text-[10px] font-medium shadow-sm">Quantum Expired</span>
+            </div>
+            <div class="absolute top-[115px] left-[715px] -translate-y-1/2 pointer-events-none">
+              <span class="px-2 py-0.5 rounded-md bg-error-container text-on-error-container text-[11px] font-semibold tracking-tight shadow-sm">Exit</span>
+            </div>
+            <div class="absolute top-[230px] left-[615px] pointer-events-none">
+              <span class="px-2 py-0.5 rounded-md bg-surface-container-low text-amber-700 text-[10px] font-semibold shadow-sm">I/O Wait</span>
+            </div>
+            <div class="absolute top-[230px] left-[320px] pointer-events-none">
+              <span class="px-2 py-0.5 rounded-md bg-surface-container-low text-primary text-[10px] font-semibold shadow-sm">I/O Complete</span>
+            </div>
+
+            <!-- 5 Interactive State Nodes Grid -->
+            <div class="w-full max-w-4xl grid grid-cols-4 gap-6 items-center z-10">
+              <!-- State 1: New -->
+              <div class="flex flex-col items-center">
+                <div class="state-node relative w-24 h-24 rounded-full bg-surface-container-lowest border-2 border-dashed border-outline-variant hover:border-primary flex flex-col items-center justify-center transition-all duration-300 shadow-sm cursor-pointer group" data-state="new" id="node-new">
+                  <span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-2xl mb-0.5">add</span>
+                  <span class="font-headline-sm text-headline-sm text-on-surface font-semibold">New</span>
+                  <span class="font-label-mono text-[9px] text-outline mt-0.5">Spawn</span>
+                </div>
+                <span class="mt-2 text-xs font-medium text-outline">Thread Spawn</span>
+              </div>
+              <!-- State 2: Ready -->
+              <div class="flex flex-col items-center">
+                <div class="state-node relative w-28 h-28 rounded-full bg-surface-container-low border-2 border-primary-container/40 flex flex-col items-center justify-center transition-all duration-300 shadow-md cursor-pointer hover:scale-105" data-state="ready" id="node-ready">
+                  <div class="w-9 h-9 rounded-full bg-primary-container/10 flex items-center justify-center text-primary-container mb-1">
+                    <span class="material-symbols-outlined text-xl">hourglass_top</span>
+                  </div>
+                  <span class="font-headline-sm text-headline-sm text-primary font-bold">Ready</span>
+                  <span class="font-label-mono text-[10px] text-primary/70">Queue</span>
+                </div>
+                <span class="mt-2 text-xs font-medium text-outline">In Ready Queue</span>
+              </div>
+              <!-- State 3: Running (Active Default) -->
+              <div class="flex flex-col items-center">
+                <div class="state-node active-pulse relative w-32 h-32 rounded-full bg-emerald-50 border-2 border-emerald-500 flex flex-col items-center justify-center transition-all duration-300 shadow-lg cursor-pointer hover:scale-105 ring-4 ring-emerald-100" data-state="running" id="node-running">
+                  <div class="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center mb-1 shadow-sm">
+                    <span class="material-symbols-outlined text-2xl">play_arrow</span>
+                  </div>
+                  <span class="font-headline-sm text-headline-sm text-emerald-800 font-bold">Running</span>
+                  <span class="font-label-mono text-[10px] text-emerald-600 font-semibold">CPU Core #0</span>
+                </div>
+                <span class="mt-2 text-xs font-bold text-emerald-700">Currently Executing</span>
+              </div>
+              <!-- State 4: Terminated -->
+              <div class="flex flex-col items-center">
+                <div class="state-node relative w-24 h-24 rounded-full bg-rose-50 border-2 border-rose-300 hover:border-error flex flex-col items-center justify-center transition-all duration-300 shadow-sm cursor-pointer group" data-state="terminated" id="node-terminated">
+                  <div class="w-8 h-8 rounded-full bg-rose-100 text-error flex items-center justify-center mb-0.5">
+                    <span class="material-symbols-outlined text-lg">done_all</span>
+                  </div>
+                  <span class="font-headline-sm text-headline-sm text-on-surface font-semibold">Terminated</span>
+                  <span class="font-label-mono text-[9px] text-outline">Deallocated</span>
+                </div>
+                <span class="mt-2 text-xs font-medium text-outline">Clean Exit</span>
+              </div>
+            </div>
+
+            <!-- State 5: Blocked (Positioned below between Ready & Running) -->
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col items-center z-10">
+              <div class="state-node relative w-24 h-24 rounded-full bg-amber-50 border-2 border-amber-300 hover:border-amber-500 flex flex-col items-center justify-center transition-all duration-300 shadow-sm cursor-pointer group" data-state="blocked" id="node-blocked">
+                <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mb-0.5">
+                  <span class="material-symbols-outlined text-lg">pause</span>
+                </div>
+                <span class="font-headline-sm text-headline-sm text-amber-900 font-semibold">Blocked</span>
+                <span class="font-label-mono text-[9px] text-amber-700">Wait / Sleep</span>
+              </div>
+              <span class="mt-1 text-xs font-medium text-outline">Waiting for Disk/I/O</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Detailed Analytics & Telemetry Split Panels -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          <!-- Left Panel: Lifecycle Events Log (7 cols) -->
+          <div class="lg:col-span-7 bg-surface-container-lowest rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between pb-4 border-b border-surface-container">
+                <div class="flex items-center gap-2.5">
+                  <div class="p-2 rounded-xl bg-surface-container text-primary">
+                    <span class="material-symbols-outlined text-lg">history</span>
+                  </div>
+                  <div>
+                    <h2 class="font-headline-sm text-headline-sm text-on-surface">Lifecycle Events</h2>
+                    <p class="font-body-sm text-body-sm text-on-surface-variant" id="eventLogSub">Deterministic timestamp log for Thread T1</p>
+                  </div>
+                </div>
+                <span class="font-label-mono text-label-mono px-2 py-1 bg-surface-container-low rounded-lg text-outline text-xs">Sim clock: <span class="text-primary font-bold" id="clockDisplay">t = 2.4s</span></span>
+              </div>
+              <!-- Timeline Log Items -->
+              <div class="mt-4 space-y-3 max-h-64 overflow-y-auto pr-1" id="eventsContainer">
+                <!-- Dynamically updated -->
+              </div>
+            </div>
+            <!-- Quick Context Switch Summary -->
+            <div class="mt-4 pt-3 border-t border-surface-container flex items-center justify-between text-xs text-on-surface-variant">
+              <span>Context Switches: <strong class="text-on-surface font-label-mono" id="csCount">2</strong></span>
+              <span>Burst Time: <strong class="text-on-surface font-label-mono" id="burstStat">8 ms</strong></span>
+              <span>Priority: <strong class="text-on-surface font-label-mono" id="prioStat">2 (Normal)</strong></span>
+            </div>
+          </div>
+
+          <!-- Right Panel: Live Thread State Card + Isometric Visual Element (5 cols) -->
+          <div class="lg:col-span-5 bg-surface-container-lowest rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                  <span class="p-2 rounded-xl bg-secondary/10 text-secondary">
+                    <span class="material-symbols-outlined text-lg">memory</span>
+                  </span>
+                  <h2 class="font-headline-sm text-headline-sm text-on-surface">Live Thread State</h2>
+                </div>
+                <span class="font-status-badge text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1.5 shadow-sm" id="currentStatusBadge">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  RUNNING
+                </span>
+              </div>
+
+              <!-- Telemetry Data Rows -->
+              <div class="space-y-3.5 bg-surface-container-low p-4 rounded-xl">
+                <div class="flex items-center justify-between">
+                  <span class="font-body-sm text-body-sm text-on-surface-variant">Thread Identifier</span>
+                  <span class="font-label-mono text-label-mono font-bold text-primary bg-surface-container-lowest px-2 py-0.5 rounded-md shadow-xs" id="threadIdBadge">T1 [Worker-Compute]</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="font-body-sm text-body-sm text-on-surface-variant">Execution Progress</span>
+                  <span class="font-label-mono text-label-mono font-semibold text-on-surface"><span id="unitsDone">5</span> / <span id="totalUnits">8</span> units (<span id="pctDone">62%</span>)</span>
+                </div>
+                <!-- Progress Bar -->
+                <div class="w-full bg-surface-container-highest rounded-full h-2.5 overflow-hidden">
+                  <div class="bg-gradient-to-r from-primary to-emerald-500 h-2.5 rounded-full transition-all duration-500" id="progressBar" style="width: 62%"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-1 font-body-sm text-body-sm">
+                  <div class="p-2 rounded-lg bg-surface-container-lowest">
+                    <span class="text-outline text-xs block">Priority Level</span>
+                    <span class="font-label-mono text-label-mono font-bold text-on-surface" id="prioBadge">NORMAL (2)</span>
+                  </div>
+                  <div class="p-2 rounded-lg bg-surface-container-lowest">
+                    <span class="text-outline text-xs block">Assigned Core</span>
+                    <span class="font-label-mono text-label-mono font-bold text-emerald-700">CPU Core #0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Isometric 3D Hardware Stack & Gear Visual Illustration -->
+            <div class="mt-6 pt-4 border-t border-surface-container flex items-center justify-between">
+              <div class="space-y-1">
+                <span class="font-status-badge text-[10px] uppercase font-bold text-secondary tracking-wider">Hardware Sync Engine</span>
+                <p class="font-body-sm text-body-sm text-on-surface-variant max-w-[200px]">Simulated POSIX Thread Kernel Subsystem with preemptive timer ticks.</p>
+              </div>
+              <!-- Isometric SVG Graphic -->
+              <div class="relative w-24 h-24 flex items-center justify-center">
+                <svg class="w-20 h-20" fill="none" viewbox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+                  <polygon fill="#E0E7FF" points="60,10 110,38 60,68 10,38" stroke="#C7D2FE" stroke-width="2"></polygon>
+                  <polygon fill="#93C5FD" points="10,38 60,68 60,78 10,48"></polygon>
+                  <polygon fill="#60A5FA" points="110,38 60,68 60,78 110,48"></polygon>
+                  <polygon fill="#DBEAFE" points="60,35 100,58 60,82 20,58" stroke="#93C5FD" stroke-width="1.5"></polygon>
+                  <polygon fill="#3B82F6" points="20,58 60,82 60,92 20,68"></polygon>
+                  <polygon fill="#1D4ED8" points="100,58 60,82 60,92 100,68"></polygon>
+                  <g class="animate-spin" style="transform-origin: 60px 48px; animation-duration: 8s;">
+                    <circle cx="60" cy="48" fill="#8B5CF6" fill-opacity="0.85" r="16"></circle>
+                    <circle cx="60" cy="48" fill="#FFFFFF" r="6"></circle>
+                    <rect fill="#7C3AED" height="8" rx="2" width="6" x="57" y="28"></rect>
+                    <rect fill="#7C3AED" height="8" rx="2" width="6" x="57" y="60"></rect>
+                    <rect fill="#7C3AED" height="6" rx="2" width="8" x="40" y="45"></rect>
+                    <rect fill="#7C3AED" height="6" rx="2" width="8" x="72" y="45"></rect>
+                  </g>
+                  <circle class="animate-ping" cx="88" cy="28" fill="#10B981" r="3.5"></circle>
+                  <circle cx="88" cy="28" fill="#10B981" r="3"></circle>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/frontend/js/api.js"></script>
+  <script src="/frontend/js/navigation.js"></script>
+  <script>
+    const states = ['new', 'ready', 'running', 'blocked', 'ready', 'running', 'terminated'];
+    let currentIndex = 2; // starts at 'running'
+    let autoInterval = null;
+    let selectedThreadId = 'T1';
+    let threadList = [];
+
+    const nodeElements = {
+      new: document.getElementById('node-new'),
+      ready: document.getElementById('node-ready'),
+      running: document.getElementById('node-running'),
+      blocked: document.getElementById('node-blocked'),
+      terminated: document.getElementById('node-terminated')
+    };
+
+    const statusBadge = document.getElementById('currentStatusBadge');
+    const playBtn = document.getElementById('playBtn');
+    const playIcon = document.getElementById('playIcon');
+    const playText = document.getElementById('playText');
+    const stepBtn = document.getElementById('stepBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const progressBar = document.getElementById('progressBar');
+    const unitsDone = document.getElementById('unitsDone');
+    const totalUnits = document.getElementById('totalUnits');
+    const pctDone = document.getElementById('pctDone');
+    const eventsContainer = document.getElementById('eventsContainer');
+
+    const stateStyles = {
+      new: { label: 'NEW', bg: 'bg-surface-container', text: 'text-on-surface-variant', dot: 'bg-outline' },
+      ready: { label: 'READY', bg: 'bg-primary-container/15', text: 'text-primary', dot: 'bg-primary' },
+      running: { label: 'RUNNING', bg: 'bg-emerald-100', text: 'text-emerald-800', dot: 'bg-emerald-500' },
+      blocked: { label: 'BLOCKED', bg: 'bg-amber-100', text: 'text-amber-800', dot: 'bg-amber-500' },
+      terminated: { label: 'TERMINATED', bg: 'bg-rose-100', text: 'text-rose-800', dot: 'bg-rose-500' }
+    };
+
+    async function loadThreadsForLifecycle() {
+      try {
+        const res = await ThreadLabAPI.getThreads();
+        if (res.success && res.threads.length > 0) {
+          threadList = res.threads;
+          const select = document.getElementById('threadSelect');
+          select.innerHTML = '';
+          threadList.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.id;
+            opt.textContent = `${t.id} (${t.name || 'Worker'})`;
+            select.appendChild(opt);
+          });
+          select.value = selectedThreadId;
+          updateThreadInfo();
+        }
+      } catch (err) {
+        console.warn('Lifecycle threads fetch:', err);
+      }
+    }
+
+    function switchTargetThread(tid) {
+      selectedThreadId = tid;
+      updateThreadInfo();
+      currentIndex = 0;
+      setActiveState('new');
+      renderEventsLog();
+    }
+
+    function updateThreadInfo() {
+      const thread = threadList.find(t => t.id === selectedThreadId) || { id: selectedThreadId, name: 'Worker', burst_time: 8, priority: 2 };
+      document.getElementById('activeThreadLabel').textContent = `${thread.id} (${thread.name})`;
+      document.getElementById('threadIdBadge').textContent = `${thread.id} [${thread.name}]`;
+      document.getElementById('burstStat').textContent = `${thread.burst_time} ms`;
+      document.getElementById('totalUnits').textContent = thread.burst_time;
+      document.getElementById('prioStat').textContent = `${thread.priority} (Level ${thread.priority})`;
+      document.getElementById('prioBadge').textContent = thread.priority === 1 ? 'HIGH (1)' : (thread.priority === 2 ? 'NORMAL (2)' : 'LOW (3)');
+      document.getElementById('eventLogSub').textContent = `Deterministic timestamp log for Thread ${thread.id}`;
+    }
+
+    function setActiveState(stateKey) {
+      Object.values(nodeElements).forEach(el => {
+        if (!el) return;
+        el.classList.remove('ring-4', 'ring-emerald-300', 'ring-primary/40', 'ring-amber-300', 'ring-rose-300', 'scale-105', 'shadow-xl');
+      });
+
+      const activeEl = nodeElements[stateKey];
+      if (activeEl) {
+        activeEl.classList.add('scale-105', 'shadow-xl');
+        if (stateKey === 'running') activeEl.classList.add('ring-4', 'ring-emerald-300');
+        else if (stateKey === 'ready') activeEl.classList.add('ring-4', 'ring-primary/40');
+        else if (stateKey === 'blocked') activeEl.classList.add('ring-4', 'ring-amber-300');
+        else if (stateKey === 'terminated') activeEl.classList.add('ring-4', 'ring-rose-300');
+      }
+
+      const conf = stateStyles[stateKey];
+      statusBadge.className = `font-status-badge text-[11px] font-bold px-3 py-1 rounded-full ${conf.bg} ${conf.text} flex items-center gap-1.5 shadow-sm transition-all`;
+      statusBadge.innerHTML = `<span class="w-2 h-2 rounded-full ${conf.dot} animate-pulse"></span> ${conf.label}`;
+
+      const progressSteps = { new: 0, ready: 25, running: 65, blocked: 45, terminated: 100 };
+      const pct = progressSteps[stateKey] || 50;
+      progressBar.style.width = pct + '%';
+      pctDone.textContent = `${pct}%`;
+      const thread = threadList.find(t => t.id === selectedThreadId) || { burst_time: 8 };
+      unitsDone.innerText = Math.round((pct / 100) * thread.burst_time);
+
+      renderEventsLog();
+    }
+
+    function renderEventsLog() {
+      const logs = [
+        { time: '0ms', text: `${selectedThreadId} Created via pthread_create()`, state: 'NEW', color: 'text-outline', dot: 'bg-outline' },
+        { time: '1ms', text: `Admitted into kernel Ready Queue`, state: 'READY', color: 'text-primary', dot: 'bg-primary' },
+        { time: '2ms', text: `Scheduler dispatched ${selectedThreadId} on Core #0`, state: 'RUNNING', color: 'text-emerald-700', dot: 'bg-emerald-500' },
+        { time: '4ms', text: `Quantum timer expired (Preempted back to queue)`, state: 'READY', color: 'text-primary', dot: 'bg-primary' },
+        { time: '5ms', text: `I/O requested (Disk write pending)`, state: 'BLOCKED', color: 'text-amber-800', dot: 'bg-amber-500' },
+        { time: '7ms', text: `I/O interrupt returned; thread unblocked`, state: 'READY', color: 'text-primary', dot: 'bg-primary' },
+        { time: '8ms', text: `Dispatched again on Core #0; completed burst`, state: 'RUNNING', color: 'text-emerald-700', dot: 'bg-emerald-500' },
+        { time: '9ms', text: `Execution complete. Thread destroyed (Clean exit)`, state: 'TERMINATED', color: 'text-rose-800', dot: 'bg-rose-500' }
+      ];
+
+      eventsContainer.innerHTML = '';
+      const visibleCount = Math.min(logs.length, currentIndex + 2);
+      logs.slice(0, visibleCount).forEach((log, i) => {
+        const isLatest = i === visibleCount - 1;
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between p-2.5 rounded-xl transition-all ${isLatest ? 'bg-surface-container-high border-l-4 border-primary font-semibold' : 'bg-surface-container-low/80'}`;
+        row.innerHTML = `
+          <div class="flex items-center gap-3">
+            <span class="w-2.5 h-2.5 rounded-full ${log.dot} ${isLatest ? 'animate-ping' : ''}"></span>
+            <span class="font-label-mono text-label-mono font-bold text-primary">t = ${log.time}</span>
+            <span class="font-body-sm text-body-sm text-on-surface">${log.text}</span>
+          </div>
+          <span class="font-status-badge text-[10px] uppercase font-bold ${log.color} bg-white/70 px-2 py-0.5 rounded-full shadow-xs">${log.state}</span>
+        `;
+        eventsContainer.appendChild(row);
+      });
+      document.getElementById('clockDisplay').textContent = `t = ${(visibleCount * 0.4).toFixed(1)}s`;
+    }
+
+    function stepNext() {
+      currentIndex = (currentIndex + 1) % states.length;
+      setActiveState(states[currentIndex]);
+    }
+
+    stepBtn.addEventListener('click', stepNext);
+
+    resetBtn.addEventListener('click', () => {
+      currentIndex = 0;
+      setActiveState('new');
+      if (autoInterval) {
+        clearInterval(autoInterval);
+        autoInterval = null;
+        playIcon.innerText = 'play_arrow';
+        playText.innerText = 'Auto Play';
+      }
+    });
+
+    playBtn.addEventListener('click', () => {
+      if (autoInterval) {
+        clearInterval(autoInterval);
+        autoInterval = null;
+        playIcon.innerText = 'play_arrow';
+        playText.innerText = 'Auto Play';
+      } else {
+        autoInterval = setInterval(stepNext, 1800);
+        playIcon.innerText = 'pause';
+        playText.innerText = 'Pause';
+      }
+    });
+
+    Object.keys(nodeElements).forEach(key => {
+      const el = nodeElements[key];
+      if (el) {
+        el.addEventListener('click', () => {
+          const idx = states.indexOf(key);
+          if (idx !== -1) currentIndex = idx;
+          setActiveState(key);
+        });
+      }
+    });
+
+    window.switchTargetThread = switchTargetThread;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadThreadsForLifecycle();
+      setActiveState('running');
+    });
+  </script>
+</body>
+</html>
+

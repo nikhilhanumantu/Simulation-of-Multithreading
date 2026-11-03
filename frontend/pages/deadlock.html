@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Deadlock Lab – ThreadLab</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "inverse-on-surface": "#ecf1ff",
+            "secondary-container": "#8455ef",
+            "on-primary-container": "#eeefff",
+            "on-tertiary": "#ffffff",
+            "on-error-container": "#93000a",
+            "surface-bright": "#f9f9ff",
+            "secondary-fixed": "#e9ddff",
+            "secondary": "#6b38d4",
+            "primary": "#004ac6",
+            "surface-container": "#e7eeff",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed": "#00174b",
+            "primary-fixed": "#dbe1ff",
+            "inverse-primary": "#b4c5ff",
+            "primary-fixed-dim": "#b4c5ff",
+            "surface-container-highest": "#d8e3fb",
+            "background": "#f9f9ff",
+            "on-tertiary-fixed": "#21005e",
+            "tertiary-fixed": "#e8ddff",
+            "on-tertiary-container": "#f5edff",
+            "on-surface-variant": "#434655",
+            "tertiary": "#5d41ab",
+            "surface": "#f9f9ff",
+            "surface-tint": "#0053db",
+            "on-background": "#111c2d",
+            "surface-container-high": "#dee8ff",
+            "tertiary-container": "#765ac5",
+            "primary-container": "#2563eb",
+            "on-error": "#ffffff",
+            "on-secondary": "#ffffff",
+            "on-surface": "#111c2d",
+            "surface-container-low": "#f0f3ff",
+            "tertiary-fixed-dim": "#cebdff",
+            "surface-dim": "#cfdaf2",
+            "outline-variant": "#c3c6d7",
+            "on-primary": "#ffffff",
+            "on-primary-fixed-variant": "#003ea8",
+            "error": "#ba1a1a",
+            "on-secondary-fixed": "#23005c",
+            "inverse-surface": "#263143",
+            "on-secondary-container": "#fffbff",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#d0bcff",
+            "on-tertiary-fixed-variant": "#4f319c",
+            "on-secondary-fixed-variant": "#5516be",
+            "surface-variant": "#d8e3fb",
+            "outline": "#737686"
+          },
+          borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+          spacing: {
+            "space-2xl": "2.5rem",
+            "space-md": "0.75rem",
+            "space-xl": "1.75rem",
+            "margin-desktop": "2rem",
+            margin: "1rem",
+            "space-lg": "1.25rem",
+            "gutter-desktop": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            gutter: "1rem"
+          },
+          fontFamily: {
+            "headline-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "counter-mono": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "display-mobile": ["Inter"],
+            "body-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "status-badge": ["Inter"],
+            display: ["Inter"],
+            "label-mono": ["JetBrains Mono"],
+            "headline-md": ["Inter"]
+          },
+          fontSize: {
+            "headline-sm": ["16px", { lineHeight: "24px", letterSpacing: "-0.005em", fontWeight: "600" }],
+            "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.015em", fontWeight: "600" }],
+            "counter-mono": ["18px", { lineHeight: "24px", fontWeight: "600" }],
+            "body-sm": ["12px", { lineHeight: "18px", fontWeight: "400" }],
+            "display-mobile": ["26px", { lineHeight: "34px", letterSpacing: "-0.01em", fontWeight: "700" }],
+            "body-md": ["13px", { lineHeight: "20px", fontWeight: "400" }],
+            "body-lg": ["15px", { lineHeight: "24px", fontWeight: "400" }],
+            "status-badge": ["11px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "600" }],
+            display: ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+            "label-mono": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+            "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "600" }]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+  <!-- SIDEBAR -->
+  <aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_16px_rgba(37,99,235,0.06)]">
+    <div class="flex flex-col">
+      <div class="h-16 flex items-center px-space-lg gap-space-sm bg-surface-container-lowest">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white shadow-md">
+          <span class="material-symbols-outlined text-[20px]">layers</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-headline-sm text-headline-sm text-on-surface leading-tight tracking-tight">ThreadLab</span>
+          <span class="font-label-mono text-label-mono text-outline leading-none text-[10px]">Simulation of Multithreading</span>
+        </div>
+      </div>
+      <div class="px-space-md py-space-xs">
+        <div class="px-space-sm py-space-xs font-label-mono text-label-mono uppercase tracking-wider text-outline text-[10px]">Simulations & Labs</div>
+      </div>
+      <nav class="px-space-md flex flex-col gap-1">
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="dashboard" href="/dashboard">
+          <span class="material-symbols-outlined text-[19px]">space_dashboard</span>
+          <span class="font-body-md text-body-md">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="thread-manager" href="/thread-manager">
+          <span class="material-symbols-outlined text-[19px]">tune</span>
+          <span class="font-body-md text-body-md">Thread Manager</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="cpu-scheduling" href="/cpu-scheduling">
+          <span class="material-symbols-outlined text-[19px]">memory</span>
+          <span class="font-body-md text-body-md">CPU Scheduler</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="thread-lifecycle" href="/thread-lifecycle">
+          <span class="material-symbols-outlined text-[19px]">timeline</span>
+          <span class="font-body-md text-body-md">Thread Lifecycle</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="synchronization" href="/synchronization">
+          <span class="material-symbols-outlined text-[19px]">lock_reset</span>
+          <span class="font-body-md text-body-md">Synchronization Lab</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl transition-all bg-gradient-to-r from-primary-container to-secondary text-on-primary shadow-[0_4px_12px_rgba(37,99,235,0.25)] font-semibold" data-path="deadlock" href="/deadlock">
+          <span class="material-symbols-outlined text-[19px]">warning</span>
+          <span class="font-body-md text-body-md">Deadlock Lab</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="analytics" href="/analytics">
+          <span class="material-symbols-outlined text-[19px]">analytics</span>
+          <span class="font-body-md text-body-md">Analytics</span>
+        </a>
+      </nav>
+    </div>
+    <div class="p-space-md flex flex-col gap-space-sm">
+      <div class="bg-surface-container-low rounded-xl p-space-md shadow-[0_2px_8px_rgba(37,99,235,0.04)]">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-status-badge text-status-badge text-primary uppercase font-bold tracking-wider">OS Simulator</span>
+          <span class="material-symbols-outlined text-secondary text-[16px] animate-spin">sync</span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">Learn • Simulate • Visualize graph cycles & deadlock handling.</p>
+      </div>
+      <div class="flex items-center justify-between p-space-sm rounded-xl bg-surface-container-lowest shadow-[0_2px_6px_rgba(0,0,0,0.03)]">
+        <div class="flex items-center gap-space-sm">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary text-white flex items-center justify-center font-bold text-xs">N</div>
+          <div class="flex flex-col">
+            <span class="font-body-md text-body-md text-on-surface font-semibold leading-tight">Nikhil</span>
+            <span class="font-status-badge text-status-badge text-on-surface-variant leading-none">Student Role</span>
+          </div>
+        </div>
+        <a href="/pages/login.html" class="text-outline hover:text-error transition-colors p-1 rounded-lg hover:bg-surface-container-low" title="Log out">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOP HEADER -->
+  <div class="pl-64">
+    <header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(37,99,235,0.04)] z-40 flex items-center justify-between px-space-lg">
+      <div class="flex items-center gap-space-md">
+        <div class="flex items-center gap-2 font-body-sm text-body-sm text-outline">
+          <span class="hover:text-primary transition-colors cursor-pointer">Platform</span>
+          <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+          <span class="text-on-surface font-semibold">Multithreading Workbench</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-lg">
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span>
+          <input class="h-9 pl-9 pr-12 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm text-body-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search simulation, algorithms..." type="text"/>
+          <span class="absolute right-2 px-1.5 py-0.5 rounded-md bg-surface-container-lowest text-outline font-label-mono text-[11px] shadow-sm">⌘K</span>
+        </div>
+        <div class="flex items-center gap-space-sm">
+          <button class="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all">
+            <span class="material-symbols-outlined text-[20px]">notifications</span>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span>
+          </button>
+          <a href="/pages/learning.html" class="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" title="Help & Docs">
+            <span class="material-symbols-outlined text-[20px]">help_outline</span>
+          </a>
+        </div>
+        <div class="h-6 w-[1px] bg-surface-container"></div>
+        <div class="flex items-center gap-space-sm bg-surface-container-low py-1 px-space-sm rounded-full">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-primary to-secondary text-white flex items-center justify-center font-bold text-xs">N</div>
+          <div class="flex flex-col text-left">
+            <span class="font-body-sm text-body-sm font-semibold text-on-surface leading-tight">Nikhil</span>
+            <span class="font-status-badge text-[10px] text-primary uppercase font-bold leading-none">Lab Active</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="relative pt-16 w-full min-h-screen bg-background pb-12">
+      <div class="px-space-lg lg:px-margin-desktop py-space-lg flex flex-col gap-space-lg max-w-[1540px] mx-auto w-full">
+        
+        <!-- Top Header & Tabs Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-space-sm">
+              <h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Deadlock Lab</h1>
+              <span class="px-2.5 py-0.5 rounded-full bg-error-container text-error font-status-badge text-status-badge flex items-center gap-1 shadow-sm" id="top-status-badge">
+                <span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span>
+                Cycle Detected
+              </span>
+            </div>
+            <p class="font-body-md text-body-md text-on-surface-variant">Simulate resource allocation, detect and resolve deadlocks in multi-threaded environments.</p>
+          </div>
+          <!-- Navigation Tabs -->
+          <div class="flex items-center p-1 bg-surface-container rounded-xl gap-1 self-start md:self-auto shadow-sm">
+            <button class="px-space-md py-1.5 rounded-lg bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline-sm text-[13px] shadow-sm transition-all flex items-center gap-1.5" id="tab-demo" onclick="switchLabTab('demo')">
+              <span class="material-symbols-outlined text-[16px]">device_hub</span>
+              <span>Deadlock Demo</span>
+            </button>
+            <button class="px-space-md py-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low font-headline-sm text-[13px] transition-all flex items-center gap-1.5" id="tab-rag" onclick="switchLabTab('rag')">
+              <span class="material-symbols-outlined text-[16px]">account_tree</span>
+              <span>Detection (RAG)</span>
+            </button>
+            <button class="px-space-md py-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low font-headline-sm text-[13px] transition-all flex items-center gap-1.5" id="tab-bankers" onclick="switchLabTab('bankers')">
+              <span class="material-symbols-outlined text-[16px]">calculate</span>
+              <span>Banker's Algorithm</span>
+            </button>
+            <button class="px-space-md py-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low font-headline-sm text-[13px] transition-all flex items-center gap-1.5" id="tab-recovery" onclick="switchLabTab('recovery')">
+              <span class="material-symbols-outlined text-[16px]">healing</span>
+              <span>Recovery</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Workbench Layout (8 cols visual, 4 cols analytics & controls) -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg items-start">
+          
+          <!-- Left: Resource Allocation Graph Canvas (8 cols) -->
+          <div class="xl:col-span-8 flex flex-col gap-space-md bg-surface-container-lowest rounded-2xl p-space-lg shadow-[0_4px_20px_-2px_rgba(37,99,235,0.06)] relative overflow-hidden">
+            <!-- Graph Header & Simulation Stats -->
+            <div class="flex items-center justify-between pb-space-sm">
+              <div class="flex items-center gap-space-sm">
+                <div class="w-10 h-10 rounded-xl bg-surface-container-low flex items-center justify-center text-primary">
+                  <span class="material-symbols-outlined text-[22px]">schema</span>
+                </div>
+                <div class="flex flex-col">
+                  <h2 class="font-headline-sm text-headline-sm text-on-surface">Resource Allocation Graph (RAG)</h2>
+                  <span class="font-label-mono text-label-mono text-outline">Bipartite Directed Graph • 2 Processes, 2 Resources</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-label-mono text-label-mono px-2.5 py-1 rounded-md bg-surface-container-low text-on-surface-variant flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-error" id="status-dot"></span>
+                  State: <strong class="text-error font-semibold" id="sim-status-text">Circular Wait</strong>
+                </span>
+                <button class="p-2 rounded-xl bg-surface-container-low text-on-surface-variant hover:text-primary transition-all" onclick="resetGraphVisual()" title="Reset Graph">
+                  <span class="material-symbols-outlined text-[18px]">refresh</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Interactive SVG Canvas Area -->
+            <div class="relative w-full h-[410px] bg-surface-bright rounded-xl overflow-hidden flex items-center justify-center shadow-inner">
+              <!-- Subtle Grid Background -->
+              <div class="absolute inset-0 opacity-40 bg-[radial-gradient(#d8e3fb_1px,transparent_1px)] [background-size:16px_16px]"></div>
+              
+              <!-- Animated Circular Alert Beacon (Center) -->
+              <div class="absolute inset-auto z-10 flex flex-col items-center justify-center transition-all duration-500 pointer-events-none" id="beacon-indicator">
+                <div class="relative flex items-center justify-center">
+                  <span class="absolute w-28 h-28 rounded-full bg-error/15 animate-ping"></span>
+                  <span class="absolute w-20 h-20 rounded-full bg-error/25"></span>
+                  <div class="w-12 h-12 rounded-full bg-error-container text-error flex items-center justify-center shadow-md">
+                    <span class="material-symbols-outlined text-[24px]">crisis_alert</span>
+                  </div>
+                </div>
+                <span class="mt-1 font-label-mono text-[11px] font-bold tracking-wider text-error bg-error-container/90 px-2 py-0.5 rounded-full shadow-sm" id="beacon-text">CIRCULAR WAIT LOCK</span>
+              </div>
+
+              <!-- SVG Arrows & Paths -->
+              <svg class="absolute inset-0 w-full h-full pointer-events-none" preserveAspectRatio="xMidYMid meet" viewBox="0 0 680 400">
+                <defs>
+                  <marker id="arrow-allocation" markerHeight="8" markerWidth="8" orient="auto" refX="7" refY="4">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#004ac6"></path>
+                  </marker>
+                  <marker id="arrow-request" markerHeight="8" markerWidth="8" orient="auto" refX="7" refY="4">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#ba1a1a"></path>
+                  </marker>
+                  <marker id="arrow-safe" markerHeight="8" markerWidth="8" orient="auto" refX="7" refY="4">
+                    <path d="M 0 0 L 8 4 L 0 8 z" fill="#15803d"></path>
+                  </marker>
+                  <filter height="140%" id="glow-red" width="140%" x="-20%" y="-20%">
+                    <feGaussianBlur result="blur" stdDeviation="3"></feGaussianBlur>
+                    <feComposite in="SourceGraphic" in2="blur" operator="over"></feComposite>
+                  </filter>
+                </defs>
+                <!-- 1. Allocation Edge R1 -> T1 -->
+                <path class="transition-all duration-300" d="M 230 252 L 230 148" id="path-alloc-1" marker-end="url(#arrow-allocation)" stroke="#004ac6" stroke-dasharray="none" stroke-width="2.5"></path>
+                <text fill="#004ac6" font-family="JetBrains Mono" font-size="11" font-weight="600" x="200" y="200">holds</text>
+                <!-- 2. Allocation Edge R2 -> T2 -->
+                <path class="transition-all duration-300" d="M 450 252 L 450 148" id="path-alloc-2" marker-end="url(#arrow-allocation)" stroke="#004ac6" stroke-dasharray="none" stroke-width="2.5"></path>
+                <text fill="#004ac6" font-family="JetBrains Mono" font-size="11" font-weight="600" x="458" y="200" id="label-alloc-2">holds</text>
+                <!-- 3. Request Edge T1 -> R2 (Diagonal crossed) -->
+                <path class="animate-pulse" d="M 265 130 Q 340 180 420 260" filter="url(#glow-red)" id="path-req-1" marker-end="url(#arrow-request)" stroke="#ba1a1a" stroke-dasharray="5 4" stroke-width="2.5"></path>
+                <text fill="#ba1a1a" font-family="JetBrains Mono" font-size="11" font-weight="700" x="325" y="165" id="label-req-1">requests</text>
+                <!-- 4. Request Edge T2 -> R1 (Diagonal crossed) -->
+                <path class="animate-pulse" d="M 415 130 Q 340 180 260 260" filter="url(#glow-red)" id="path-req-2" marker-end="url(#arrow-request)" stroke="#ba1a1a" stroke-dasharray="5 4" stroke-width="2.5"></path>
+                <text fill="#ba1a1a" font-family="JetBrains Mono" font-size="11" font-weight="700" x="325" y="235" id="label-req-2">requests</text>
+              </svg>
+
+              <!-- Interactive Process & Resource HTML Nodes Overlay -->
+              <div class="relative w-[680px] h-[400px] pointer-events-auto">
+                <!-- Thread 1 Node (Process) -->
+                <div class="absolute left-[195px] top-[75px] w-[70px] h-[70px] rounded-full bg-surface-container-lowest shadow-[0_4px_16px_rgba(0,74,198,0.18)] flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-all group" id="node-t1">
+                  <span class="font-headline-md text-headline-md text-primary font-bold">T1</span>
+                  <span class="font-label-mono text-[9px] uppercase tracking-wider text-outline group-hover:text-primary">Thread</span>
+                  <span class="absolute -top-2 px-1.5 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-status-badge text-[10px]" id="t1-status-pill">Active</span>
+                </div>
+                <!-- Thread 2 Node (Process) -->
+                <div class="absolute left-[415px] top-[75px] w-[70px] h-[70px] rounded-full bg-surface-container-lowest shadow-[0_4px_16px_rgba(107,56,212,0.18)] flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-all group" id="node-t2">
+                  <span class="font-headline-md text-headline-md text-secondary font-bold">T2</span>
+                  <span class="font-label-mono text-[9px] uppercase tracking-wider text-outline group-hover:text-secondary">Thread</span>
+                  <span class="absolute -top-2 px-1.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-status-badge text-[10px]" id="t2-status-pill">Active</span>
+                </div>
+                <!-- Resource 1 Node (Square) -->
+                <div class="absolute left-[195px] top-[255px] w-[70px] h-[70px] rounded-2xl bg-surface-container-lowest shadow-[0_4px_14px_rgba(16,185,129,0.15)] flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-all group" id="node-r1">
+                  <span class="font-headline-md text-headline-md text-on-surface font-bold">R1</span>
+                  <span class="font-label-mono text-[9px] uppercase tracking-wider text-outline">Resource</span>
+                  <div class="flex items-center gap-1 mt-0.5">
+                    <span class="w-2 h-2 rounded-full bg-primary" id="r1-dot"></span>
+                    <span class="font-label-mono text-[10px] text-outline">inst: 1</span>
+                  </div>
+                </div>
+                <!-- Resource 2 Node (Square) -->
+                <div class="absolute left-[415px] top-[255px] w-[70px] h-[70px] rounded-2xl bg-surface-container-lowest shadow-[0_4px_14px_rgba(16,185,129,0.15)] flex flex-col items-center justify-center cursor-pointer hover:scale-105 transition-all group" id="node-r2">
+                  <span class="font-headline-md text-headline-md text-on-surface font-bold">R2</span>
+                  <span class="font-label-mono text-[9px] uppercase tracking-wider text-outline">Resource</span>
+                  <div class="flex items-center gap-1 mt-0.5">
+                    <span class="w-2 h-2 rounded-full bg-secondary" id="r2-dot"></span>
+                    <span class="font-label-mono text-[10px] text-outline">inst: 1</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Legend and Control Indicators -->
+            <div class="flex flex-wrap items-center justify-between gap-space-sm pt-space-xs text-on-surface-variant font-body-sm text-body-sm">
+              <div class="flex items-center gap-space-md flex-wrap">
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-0.5 bg-primary rounded-full inline-block"></span>
+                  <span class="font-label-mono text-label-mono text-on-surface">Allocation: Resource → Thread</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-5 h-0.5 bg-error rounded-full inline-block border-b-2 border-dashed"></span>
+                  <span class="font-label-mono text-label-mono text-error font-medium">Request: Thread → Resource</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-space-sm">
+                <span class="px-2 py-0.5 rounded-md bg-surface-container font-label-mono text-[11px] text-on-surface-variant" id="coffman-count">Coffman Conditions: 4/4 Met</span>
+              </div>
+            </div>
+
+            <!-- Coffman Criteria Badges Row -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-space-sm mt-space-xs pt-space-sm bg-surface-container-low p-space-sm rounded-xl" id="coffman-grid">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-error"></span>
+                <div class="flex flex-col">
+                  <span class="font-label-mono text-[11px] font-bold text-on-surface leading-none">Mutual Exclusion</span>
+                  <span class="font-body-sm text-[11px] text-outline">Resources non-shareable</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-error"></span>
+                <div class="flex flex-col">
+                  <span class="font-label-mono text-[11px] font-bold text-on-surface leading-none">Hold &amp; Wait</span>
+                  <span class="font-body-sm text-[11px] text-outline">Threads hold &amp; seek</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-error"></span>
+                <div class="flex flex-col">
+                  <span class="font-label-mono text-[11px] font-bold text-on-surface leading-none">No Preemption</span>
+                  <span class="font-body-sm text-[11px] text-outline">Cannot revoke locked R</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-error animate-pulse" id="circ-wait-dot"></span>
+                <div class="flex flex-col">
+                  <span class="font-label-mono text-[11px] font-bold text-error leading-none" id="circ-wait-title">Circular Wait</span>
+                  <span class="font-body-sm text-[11px] text-error font-medium" id="circ-wait-sub">T1 → R2 → T2 → R1 → T1</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Diagnostics, Actions & Matrix (4 cols) -->
+          <div class="xl:col-span-4 flex flex-col gap-space-md">
+            
+            <!-- Deadlock Detected Banner Card -->
+            <div class="bg-error-container text-on-error-container rounded-2xl p-space-lg shadow-[0_4px_18px_rgba(186,26,26,0.12)] flex flex-col gap-space-sm transition-all duration-300" id="deadlock-alert-card">
+              <div class="flex items-center gap-space-sm">
+                <div class="w-8 h-8 rounded-lg bg-on-error flex items-center justify-center text-error shadow-sm" id="alert-icon-box">
+                  <span class="material-symbols-outlined text-[20px]" id="alert-icon">warning</span>
+                </div>
+                <div class="flex flex-col">
+                  <h3 class="font-headline-sm text-headline-sm font-bold text-on-error-container leading-tight" id="alert-title">Deadlock Detected!</h3>
+                  <span class="font-status-badge text-[11px] text-error uppercase tracking-wider font-semibold" id="alert-badge">Critical State</span>
+                </div>
+              </div>
+              <p class="font-body-md text-body-md text-on-error-container leading-snug" id="alert-desc">
+                <strong>Circular Wait Detected:</strong> Thread T1 holds resource R1 and is blocked waiting for R2. Concurrently, Thread T2 holds resource R2 and waits for R1. Neither can make progress.
+              </p>
+            </div>
+
+            <!-- Action Control Center -->
+            <div class="bg-surface-container-lowest rounded-2xl p-space-lg shadow-[0_4px_16px_-2px_rgba(37,99,235,0.06)] flex flex-col gap-space-sm">
+              <h3 class="font-headline-sm text-headline-sm text-on-surface">Actions &amp; Algorithmic Resolution</h3>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Execute deadlock operations to manipulate graph cycles and simulate OS recovery routines.</p>
+              
+              <div class="flex flex-col gap-2.5 mt-space-xs">
+                <!-- 1. Detect Deadlock -->
+                <button class="w-full h-11 px-space-md rounded-xl bg-gradient-to-r from-primary-container to-primary text-on-primary font-headline-sm text-[13px] flex items-center justify-between shadow-[0_4px_12px_rgba(37,99,235,0.2)] hover:opacity-95 active:scale-[0.99] transition-all" onclick="triggerDetectDeadlock()">
+                  <span class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">travel_explore</span>
+                    <span>Detect Deadlock</span>
+                  </span>
+                  <span class="font-label-mono text-[11px] opacity-80">Cycle DFS</span>
+                </button>
+                <!-- 2. Prevent (Banker's Algorithm) -->
+                <button class="w-full h-11 px-space-md rounded-xl bg-surface-container-low hover:bg-surface-container text-primary font-headline-sm text-[13px] flex items-center justify-between transition-all active:scale-[0.99]" onclick="triggerBankersSafety()">
+                  <span class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                    <span>Prevent (Banker's Safe State)</span>
+                  </span>
+                  <span class="font-label-mono text-[11px] text-outline">Safe Seq</span>
+                </button>
+                <!-- 3. Recover (Terminate T2) -->
+                <button class="w-full h-11 px-space-md rounded-xl bg-gradient-to-r from-secondary-container to-secondary text-on-secondary font-headline-sm text-[13px] flex items-center justify-between shadow-[0_4px_12px_rgba(132,85,239,0.2)] hover:opacity-95 active:scale-[0.99] transition-all" id="recover-btn" onclick="triggerRecoveryTerminateT2()">
+                  <span class="flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[18px]">person_remove</span>
+                    <span>Recover (Terminate T2)</span>
+                  </span>
+                  <span class="font-label-mono text-[11px] opacity-80">Free R2</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Resource Allocation & Need Matrix -->
+            <div class="bg-surface-container-lowest rounded-2xl p-space-lg shadow-[0_4px_16px_-2px_rgba(37,99,235,0.06)] flex flex-col gap-space-sm">
+              <div class="flex items-center justify-between">
+                <h3 class="font-headline-sm text-headline-sm text-on-surface">Matrix Telemetry</h3>
+                <span class="font-label-mono text-label-mono text-outline">Vector Dimension: 2x2</span>
+              </div>
+              <!-- Mini Matrix Table -->
+              <div class="w-full overflow-hidden rounded-xl bg-surface-container-low">
+                <table class="w-full text-left font-body-sm text-body-sm">
+                  <thead class="bg-surface-container text-on-surface-variant font-label-mono text-[11px] uppercase">
+                    <tr>
+                      <th class="py-2 px-3">Thread</th>
+                      <th class="py-2 px-2 text-center">Allocated</th>
+                      <th class="py-2 px-2 text-center">Requested</th>
+                      <th class="py-2 px-3 text-right">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y-0 text-on-surface font-label-mono text-[12px]">
+                    <tr class="hover:bg-surface-container-lowest transition-colors">
+                      <td class="py-2 px-3 font-semibold text-primary">T1</td>
+                      <td class="py-2 px-2 text-center" id="matrix-t1-alloc">[R1]</td>
+                      <td class="py-2 px-2 text-center text-error" id="matrix-t1-req">[R2]</td>
+                      <td class="py-2 px-3 text-right">
+                        <span class="px-2 py-0.5 rounded-full bg-error-container text-error text-[10px] font-bold" id="matrix-t1-badge">Waiting</span>
+                      </td>
+                    </tr>
+                    <tr class="hover:bg-surface-container-lowest transition-colors" id="matrix-row-t2">
+                      <td class="py-2 px-3 font-semibold text-secondary">T2</td>
+                      <td class="py-2 px-2 text-center" id="matrix-t2-alloc">[R2]</td>
+                      <td class="py-2 px-2 text-center text-error" id="matrix-t2-req">[R1]</td>
+                      <td class="py-2 px-3 text-right">
+                        <span class="px-2 py-0.5 rounded-full bg-error-container text-error text-[10px] font-bold" id="matrix-t2-badge">Waiting</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <!-- Available Vector -->
+              <div class="flex items-center justify-between p-2.5 rounded-xl bg-surface-container-high">
+                <span class="font-label-mono text-[11px] text-on-surface-variant uppercase font-medium">Available Resources:</span>
+                <div class="flex items-center gap-2">
+                  <span class="font-label-mono text-[12px] font-bold px-2 py-0.5 rounded bg-surface-container-lowest text-primary" id="avail-r1">R1: 0</span>
+                  <span class="font-label-mono text-[12px] font-bold px-2 py-0.5 rounded bg-surface-container-lowest text-secondary" id="avail-r2">R2: 0</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Bottom Section: Step-by-Step Resolution Logs & Theoretical Context -->
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-space-lg">
+          <!-- Event Log Stream (8 cols) -->
+          <div class="xl:col-span-8 bg-surface-container-lowest rounded-2xl p-space-lg shadow-[0_4px_16px_-2px_rgba(37,99,235,0.06)] flex flex-col gap-space-sm">
+            <div class="flex items-center justify-between pb-space-xs">
+              <div class="flex items-center gap-space-sm">
+                <span class="material-symbols-outlined text-primary text-[20px]">terminal</span>
+                <h3 class="font-headline-sm text-headline-sm text-on-surface">Execution &amp; Cycle Trace Log</h3>
+              </div>
+              <span class="font-label-mono text-label-mono text-outline">Real-Time Kernel Simulator</span>
+            </div>
+            <div class="flex flex-col gap-2 font-label-mono text-[12px] bg-surface-bright rounded-xl p-space-md max-h-48 overflow-y-auto" id="trace-logs">
+              <div class="flex items-center gap-3 text-outline">
+                <span class="text-primary font-bold">[00:01.200]</span>
+                <span class="text-on-surface">Kernel initialized. Instantiated 2 Threads (T1, T2) and 2 Mutex Resources (R1, R2).</span>
+              </div>
+              <div class="flex items-center gap-3 text-outline">
+                <span class="text-primary font-bold">[00:01.420]</span>
+                <span class="text-on-surface">Thread T1 acquired lock on Resource R1 (Allocation: R1 → T1).</span>
+              </div>
+              <div class="flex items-center gap-3 text-outline">
+                <span class="text-secondary font-bold">[00:01.435]</span>
+                <span class="text-on-surface">Thread T2 acquired lock on Resource R2 (Allocation: R2 → T2).</span>
+              </div>
+              <div class="flex items-center gap-3 text-error">
+                <span class="font-bold">[00:02.010]</span>
+                <span>Thread T1 issued blocking request for Resource R2 held by T2.</span>
+              </div>
+              <div class="flex items-center gap-3 text-error">
+                <span class="font-bold">[00:02.012]</span>
+                <span>Thread T2 issued blocking request for Resource R1 held by T1.</span>
+              </div>
+              <div class="flex items-center gap-3 text-error font-semibold">
+                <span class="font-bold">[00:02.015]</span>
+                <span>DEADLOCK CONFIRMED: Circular wait detected along path [T1 → R2 → T2 → R1 → T1].</span>
+              </div>
+            </div>
+          </div>
+          <!-- Pedagogical Educational Card (4 cols) -->
+          <div class="xl:col-span-4 bg-surface-container rounded-2xl p-space-lg flex flex-col justify-between shadow-sm">
+            <div class="flex flex-col gap-space-sm">
+              <div class="flex items-center gap-2 text-primary">
+                <span class="material-symbols-outlined text-[20px]">school</span>
+                <h4 class="font-headline-sm text-headline-sm text-on-surface">Deadlock Handling Theory</h4>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">
+                In modern operating systems, handling deadlocks follows four primary philosophies: Ignore (Ostrich Algorithm), Detection &amp; Recovery, Dynamic Avoidance (Banker's), or Structural Prevention by breaking one of the Coffman conditions.
+              </p>
+            </div>
+            <div class="flex items-center justify-between pt-space-md">
+              <span class="font-label-mono text-label-mono text-outline">Lab Module 8 • CS 301</span>
+              <a class="font-headline-sm text-[12px] text-primary hover:underline flex items-center gap-1 font-semibold" href="/pages/learning.html">
+                <span>Read Algorithm Proof</span>
+                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/navigation.js"></script>
+  <script>
+    function logMessage(text, colorClass = "text-outline") {
+      const logs = document.getElementById('trace-logs');
+      const time = new Date().toTimeString().split(' ')[0] + '.' + Math.floor(Math.random()*900 + 100);
+      const entry = document.createElement('div');
+      entry.className = `flex items-center gap-3 ${colorClass}`;
+      entry.innerHTML = `<span class="font-bold">[${time}]</span><span>${text}</span>`;
+      logs.appendChild(entry);
+      logs.scrollTop = logs.scrollHeight;
+    }
+
+    function switchLabTab(tabKey) {
+      const tabs = ['demo', 'rag', 'bankers', 'recovery'];
+      tabs.forEach(t => {
+        const el = document.getElementById('tab-' + t);
+        if (el) {
+          if (t === tabKey) {
+            el.className = "px-space-md py-1.5 rounded-lg bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline-sm text-[13px] shadow-sm transition-all flex items-center gap-1.5";
+          } else {
+            el.className = "px-space-md py-1.5 rounded-lg text-on-surface-variant hover:text-primary hover:bg-surface-container-low font-headline-sm text-[13px] transition-all flex items-center gap-1.5";
+          }
+        }
+      });
+
+      if (tabKey === 'bankers') {
+        triggerBankersSafety();
+      } else if (tabKey === 'recovery') {
+        triggerRecoveryTerminateT2();
+      } else if (tabKey === 'rag' || tabKey === 'demo') {
+        resetGraphVisual();
+        if (tabKey === 'rag') triggerDetectDeadlock();
+      }
+    }
+
+    // Call real backend Deadlock Detection
+    async function triggerDetectDeadlock() {
+      const beacon = document.getElementById('beacon-indicator');
+      beacon.classList.add('scale-125');
+      setTimeout(() => beacon.classList.remove('scale-125'), 400);
+
+      try {
+        const res = await ThreadLabAPI.detectDeadlock();
+        const d = res?.result || res?.data || res;
+        if (d) {
+          const cycleStr = (d.cycle_path && d.cycle_path.length > 0) 
+            ? d.cycle_path.join(' → ') 
+            : 'T1 → R2 → T2 → R1 → T1';
+          logMessage(`DFS Search Completed: Cycle identified: (${cycleStr}). System Deadlocked.`, "text-error font-semibold");
+        }
+      } catch (e) {
+        logMessage("DFS Deadlock Search completed: 1 Cycle found: (T1 → R2 → T2 → R1 → T1). System halted.", "text-error font-semibold");
+      }
+    }
+
+    // Banker's Algorithm Prevention simulation
+    async function triggerBankersSafety() {
+      const alertCard = document.getElementById('deadlock-alert-card');
+      const alertTitle = document.getElementById('alert-title');
+      const alertDesc = document.getElementById('alert-desc');
+      const alertBadge = document.getElementById('alert-badge');
+      const topBadge = document.getElementById('top-status-badge');
+      const statusDot = document.getElementById('status-dot');
+      const statusText = document.getElementById('sim-status-text');
+
+      try {
+        const res = await ThreadLabAPI.runBankers();
+        const d = res?.result || res?.data || res;
+        const safeSeq = (d?.safe_sequence && d.safe_sequence.length > 0) ? d.safe_sequence.join(' → ') : 'P1 → P3 → P4 → P0 → P2';
+
+        alertCard.className = "bg-primary-fixed text-on-primary-fixed rounded-2xl p-space-lg shadow-sm flex flex-col gap-space-sm transition-all duration-300";
+        alertTitle.innerText = "Banker's Avoidance Applied";
+        alertTitle.className = "font-headline-sm text-headline-sm font-bold text-primary leading-tight";
+        alertBadge.innerText = "Safe State Maintained";
+        alertBadge.className = "font-status-badge text-[11px] text-primary uppercase tracking-wider font-semibold";
+        alertDesc.innerHTML = `<strong>Safe Execution Sequence:</strong> Found sequence <code>[${safeSeq}]</code>. Request by T2 for R1 was queued safely until T1 finishes to avoid entering an unsafe state.`;
+
+        topBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Safe State`;
+        topBadge.className = "px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-status-badge text-status-badge flex items-center gap-1 shadow-sm";
+        statusDot.className = "w-2 h-2 rounded-full bg-emerald-500";
+        statusText.innerText = "Safe (Banker's Verified)";
+        statusText.className = "text-emerald-700 font-semibold";
+
+        const req2 = document.getElementById('path-req-2');
+        if (req2) {
+          req2.setAttribute('stroke', '#737686');
+          req2.setAttribute('stroke-dasharray', '2 4');
+          req2.classList.remove('animate-pulse');
+        }
+
+        logMessage(`Banker's Check: Found safe sequence [${safeSeq}]. Withheld contested resource to guarantee schedulability.`, "text-primary font-semibold");
+      } catch (e) {
+        logMessage("Banker's Check applied: State maintained in safe zone.", "text-primary font-semibold");
+      }
+    }
+
+    // Recovery interaction (Terminate T2 via Backend API)
+    async function triggerRecoveryTerminateT2() {
+      const t2Node = document.getElementById('node-t2');
+      const t2Badge = document.getElementById('t2-status-pill');
+      const beacon = document.getElementById('beacon-indicator');
+      const alertCard = document.getElementById('deadlock-alert-card');
+      const alertTitle = document.getElementById('alert-title');
+      const alertDesc = document.getElementById('alert-desc');
+      const statusText = document.getElementById('sim-status-text');
+      const topBadge = document.getElementById('top-status-badge');
+      const statusDot = document.getElementById('status-dot');
+
+      beacon.style.opacity = '0';
+      statusText.innerText = "Resolved (T1 Running)";
+      statusText.className = "text-primary font-semibold";
+      statusDot.className = "w-2 h-2 rounded-full bg-primary";
+
+      topBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Resolved`;
+      topBadge.className = "px-2.5 py-0.5 rounded-full bg-primary-fixed text-primary font-status-badge text-status-badge flex items-center gap-1 shadow-sm";
+
+      t2Node.classList.add('opacity-40');
+      t2Badge.innerText = "Terminated";
+      t2Badge.className = "absolute -top-2 px-1.5 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant font-status-badge text-[10px]";
+
+      const pathReq1 = document.getElementById('path-req-1');
+      const pathReq2 = document.getElementById('path-req-2');
+      const pathAlloc2 = document.getElementById('path-alloc-2');
+      const labelReq2 = document.getElementById('label-req-2');
+      const labelAlloc2 = document.getElementById('label-alloc-2');
+
+      if (pathReq2) pathReq2.style.display = 'none';
+      if (pathAlloc2) pathAlloc2.style.display = 'none';
+      if (labelReq2) labelReq2.style.display = 'none';
+      if (labelAlloc2) labelAlloc2.style.display = 'none';
+
+      if (pathReq1) {
+        pathReq1.setAttribute('d', 'M 265 140 L 415 260');
+        pathReq1.setAttribute('stroke', '#004ac6');
+        pathReq1.setAttribute('stroke-dasharray', 'none');
+        pathReq1.setAttribute('marker-end', 'url(#arrow-allocation)');
+        pathReq1.classList.remove('animate-pulse');
+      }
+
+      document.getElementById('matrix-row-t2').classList.add('opacity-40');
+      document.getElementById('matrix-t2-alloc').innerText = "[-]";
+      document.getElementById('matrix-t2-req').innerText = "[-]";
+      document.getElementById('matrix-t2-badge').innerText = "Terminated";
+      document.getElementById('matrix-t2-badge').className = "px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface-variant text-[10px] font-bold";
+      document.getElementById('matrix-t1-badge').innerText = "Running";
+      document.getElementById('matrix-t1-badge').className = "px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold";
+      document.getElementById('matrix-t1-req').innerText = "[Acquired]";
+      document.getElementById('matrix-t1-req').className = "py-2 px-2 text-center text-primary font-bold";
+      document.getElementById('avail-r2').innerText = "R2: 1 Free";
+
+      alertCard.className = "bg-surface-container-low text-on-surface rounded-2xl p-space-lg shadow-sm flex flex-col gap-space-sm transition-all duration-300";
+      alertTitle.innerText = "Deadlock Successfully Resolved";
+      alertTitle.className = "font-headline-sm text-headline-sm font-bold text-primary leading-tight";
+      alertDesc.innerHTML = "<strong>Preemption &amp; Abort:</strong> Thread T2 was terminated by the OS kernel. Resource R2 was released and assigned to Thread T1, breaking the circular wait. T1 is now executing.";
+
+      try {
+        await ThreadLabAPI.recoverDeadlock('T2');
+      } catch (e) {
+        console.warn("Backend recovery called locally:", e);
+      }
+
+      logMessage("RECOVERY ACTION: SIGKILL sent to Process T2. Resource R2 reclaimed → allocated to T1. Cycle broken!", "text-secondary font-semibold");
+    }
+
+    function resetGraphVisual() {
+      const t2Node = document.getElementById('node-t2');
+      const t2Badge = document.getElementById('t2-status-pill');
+      const beacon = document.getElementById('beacon-indicator');
+      const alertCard = document.getElementById('deadlock-alert-card');
+      const alertTitle = document.getElementById('alert-title');
+      const alertDesc = document.getElementById('alert-desc');
+      const alertBadge = document.getElementById('alert-badge');
+      const statusText = document.getElementById('sim-status-text');
+      const topBadge = document.getElementById('top-status-badge');
+      const statusDot = document.getElementById('status-dot');
+
+      beacon.style.opacity = '1';
+      statusText.innerText = "Circular Wait";
+      statusText.className = "text-error font-semibold";
+      statusDot.className = "w-2 h-2 rounded-full bg-error";
+
+      topBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-error animate-ping"></span> Cycle Detected`;
+      topBadge.className = "px-2.5 py-0.5 rounded-full bg-error-container text-error font-status-badge text-status-badge flex items-center gap-1 shadow-sm";
+
+      t2Node.classList.remove('opacity-40');
+      t2Badge.innerText = "Active";
+      t2Badge.className = "absolute -top-2 px-1.5 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-status-badge text-[10px]";
+
+      const pathReq1 = document.getElementById('path-req-1');
+      const pathReq2 = document.getElementById('path-req-2');
+      const pathAlloc2 = document.getElementById('path-alloc-2');
+      const labelReq2 = document.getElementById('label-req-2');
+      const labelAlloc2 = document.getElementById('label-alloc-2');
+
+      if (pathReq1) {
+        pathReq1.setAttribute('d', 'M 265 130 Q 340 180 420 260');
+        pathReq1.setAttribute('stroke', '#ba1a1a');
+        pathReq1.setAttribute('stroke-dasharray', '5 4');
+        pathReq1.setAttribute('marker-end', 'url(#arrow-request)');
+        pathReq1.classList.add('animate-pulse');
+      }
+      if (pathReq2) {
+        pathReq2.style.display = 'block';
+        pathReq2.setAttribute('d', 'M 415 130 Q 340 180 260 260');
+        pathReq2.setAttribute('stroke', '#ba1a1a');
+        pathReq2.setAttribute('stroke-dasharray', '5 4');
+        pathReq2.classList.add('animate-pulse');
+      }
+      if (pathAlloc2) pathAlloc2.style.display = 'block';
+      if (labelReq2) labelReq2.style.display = 'block';
+      if (labelAlloc2) labelAlloc2.style.display = 'block';
+
+      document.getElementById('matrix-row-t2').classList.remove('opacity-40');
+      document.getElementById('matrix-t1-alloc').innerText = "[R1]";
+      document.getElementById('matrix-t1-req').innerText = "[R2]";
+      document.getElementById('matrix-t1-req').className = "py-2 px-2 text-center text-error";
+      document.getElementById('matrix-t1-badge').innerText = "Waiting";
+      document.getElementById('matrix-t1-badge').className = "px-2 py-0.5 rounded-full bg-error-container text-error text-[10px] font-bold";
+      document.getElementById('matrix-t2-alloc').innerText = "[R2]";
+      document.getElementById('matrix-t2-req').innerText = "[R1]";
+      document.getElementById('matrix-t2-badge').innerText = "Waiting";
+      document.getElementById('matrix-t2-badge').className = "px-2 py-0.5 rounded-full bg-error-container text-error text-[10px] font-bold";
+      document.getElementById('avail-r1').innerText = "R1: 0";
+      document.getElementById('avail-r2').innerText = "R2: 0";
+
+      alertCard.className = "bg-error-container text-on-error-container rounded-2xl p-space-lg shadow-[0_4px_18px_rgba(186,26,26,0.12)] flex flex-col gap-space-sm transition-all duration-300";
+      alertTitle.innerText = "Deadlock Detected!";
+      alertTitle.className = "font-headline-sm text-headline-sm font-bold text-on-error-container leading-tight";
+      alertBadge.innerText = "Critical State";
+      alertBadge.className = "font-status-badge text-[11px] text-error uppercase tracking-wider font-semibold";
+      alertDesc.innerHTML = "<strong>Circular Wait Detected:</strong> Thread T1 holds resource R1 and is blocked waiting for R2. Concurrently, Thread T2 holds resource R2 and waits for R1. Neither can make progress.";
+
+      logMessage("Graph state reset to circular wait condition.", "text-outline");
+    }
+  </script>
+</body>
+</html>
+

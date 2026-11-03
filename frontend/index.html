@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>ThreadLab - Interactive Multithreading Simulator</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            accent: {
+              blue: '#2563EB',
+              purple: '#8B5CF6',
+              cyan: '#06B6D4'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          },
+          boxShadow: {
+            'glow-purple': '0 10px 30px -10px rgba(139, 92, 246, 0.4)',
+            'glow-blue': '0 10px 30px -10px rgba(37, 99, 235, 0.35)',
+            'chip': '0 20px 40px -15px rgba(37, 99, 235, 0.35), 0 0 20px rgba(139, 92, 246, 0.2)',
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Typography & Global Layout Styles -->
+  <style data-purpose="typography">
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #F7F9FF;
+      color: #1e293b;
+      overflow-x: hidden;
+    }
+    
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+  </style>
+  <!-- Isometric & Animation Custom CSS -->
+  <style data-purpose="isometric-visuals">
+    .iso-stage {
+      perspective: 1000px;
+    }
+
+    .iso-chip-container {
+      transform-style: preserve-3d;
+      transform: rotateX(55deg) rotateZ(-38deg);
+      transition: transform 0.5s ease-out;
+    }
+
+    .iso-chip-container:hover {
+      transform: rotateX(50deg) rotateZ(-34deg) translateY(-8px);
+    }
+
+    .chip-slab-top {
+      background: linear-gradient(135deg, #2563EB 0%, #7C3AED 100%);
+      box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.4),
+                  0 0 25px rgba(59, 130, 246, 0.5);
+    }
+
+    .circuit-grid {
+      background-image: 
+        radial-gradient(circle, rgba(147, 197, 253, 0.25) 1.5px, transparent 1.5px),
+        linear-gradient(to right, rgba(99, 102, 241, 0.08) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(99, 102, 241, 0.08) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 0.3; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    .animate-float {
+      animation: floatSlow 4s ease-in-out infinite;
+    }
+
+    .animate-float-delayed {
+      animation: floatSlow 4.5s ease-in-out infinite 1.2s;
+    }
+
+    .animate-float-slow {
+      animation: floatSlow 5s ease-in-out infinite 2s;
+    }
+
+    .animate-ring {
+      animation: pulseRing 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen circuit-grid selection:bg-brand-100 selection:text-brand-700">
+  <!-- BEGIN: MainHeader -->
+  <header class="sticky top-0 z-50 bg-[#F7F9FF]/85 backdrop-blur-md border-b border-indigo-100/60 transition-all">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <!-- Brand Logo & Identity -->
+      <a class="flex items-center gap-3 group" data-purpose="site-logo" href="/">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-md shadow-indigo-500/25 group-hover:scale-105 transition-transform duration-200">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+            <path d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m16-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="text-xl font-bold tracking-tight text-slate-900">Thread<span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Lab</span></span>
+          </div>
+          <p class="text-[11px] font-medium text-slate-500 tracking-wide uppercase">Simulation of Multithreading</p>
+        </div>
+      </a>
+      <!-- Primary Navigation Links -->
+      <nav class="hidden md:flex items-center gap-8 text-[15px] font-medium text-slate-600">
+        <a class="text-indigo-600 font-semibold transition-colors hover:text-indigo-700" href="/">Home</a>
+        <a class="hover:text-indigo-600 transition-colors" href="#features">Features</a>
+        <a class="hover:text-indigo-600 transition-colors" href="/dashboard">Dashboard</a>
+        <a class="hover:text-indigo-600 transition-colors" href="/learning-mode">Learning Mode</a>
+      </nav>
+      <!-- Action Button -->
+      <div class="flex items-center gap-4">
+        <a class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 shadow-md shadow-purple-500/25 hover:shadow-lg hover:shadow-purple-500/35 hover:scale-[1.02] active:scale-[0.98] transition-all" href="/login">
+          <span>Get Started</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewbox="0 0 24 24">
+            <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </header>
+  <!-- END: MainHeader -->
+
+  <!-- BEGIN: HeroSection -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center min-h-[580px]">
+      <!-- Hero Left Column: Descriptive Content & CTA -->
+      <div class="lg:col-span-6 flex flex-col items-start space-y-6 text-left" data-purpose="hero-copy">
+        <!-- Project Category Badge -->
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/90 border border-blue-200/60 shadow-sm text-blue-700 text-xs font-semibold tracking-wide">
+          <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+            <path d="M9 3v2m6-2v2M9 19v2m6-2v2M3 9h2m-2 6h2m16-6h2m-2 6h2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" stroke-linecap="round" stroke-linejoin="round"></path>
+          </svg>
+          <span>OS Project • Advanced Multithreading</span>
+        </div>
+        <!-- Main Title Heading -->
+        <h1 class="text-4xl sm:text-5xl lg:text-[54px] font-extrabold text-slate-900 tracking-tight leading-[1.12]">
+          Interactive <br class="hidden sm:inline"/>
+          <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">Multithreading</span><br/>
+          Simulator
+        </h1>
+        <!-- Explanatory Subtitle -->
+        <p class="text-base sm:text-lg text-slate-600 max-w-xl leading-relaxed font-normal">
+          Visualize, simulate, and learn how an Operating System manages multiple threads, CPU scheduling, synchronization primitives, deadlocks, and context switching in real-time execution.
+        </p>
+        <!-- CTA Button Group -->
+        <div class="flex flex-wrap items-center gap-4 pt-2">
+          <!-- Primary CTA Button -->
+          <a class="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 hover:-translate-y-0.5 transition-all" href="/dashboard">
+            <span>Start Simulation</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewbox="0 0 24 24">
+              <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </a>
+          <!-- Secondary Demo Button -->
+          <a class="inline-flex items-center gap-2 px-5 py-3.5 rounded-xl text-base font-semibold text-slate-700 bg-white border border-slate-200/90 shadow-sm hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 transition-all" href="/cpu-scheduling">
+            <span class="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600">
+              <svg class="w-3.5 h-3.5 translate-x-0.5" fill="currentColor" viewbox="0 0 20 20">
+                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"></path>
+              </svg>
+            </span>
+            <span>View Demo</span>
+          </a>
+        </div>
+        <!-- Hero Bottom Module Feature Badges -->
+        <div class="pt-6 w-full">
+          <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Core Modules Included</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            <a href="/cpu-scheduling" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200/70 shadow-sm hover:border-blue-400 transition-all">
+              <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+                  <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+              <span class="text-xs font-semibold text-slate-700 truncate">CPU Scheduling</span>
+            </a>
+            <a href="/synchronization-lab" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200/70 shadow-sm hover:border-emerald-400 transition-all">
+              <div class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+                  <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+              <span class="text-xs font-semibold text-slate-700 truncate">Synchronization</span>
+            </a>
+            <a href="/deadlock-lab" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200/70 shadow-sm hover:border-amber-400 transition-all">
+              <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+                  <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+              <span class="text-xs font-semibold text-slate-700 truncate">Deadlock Lab</span>
+            </a>
+            <a href="/performance-analytics" class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-slate-200/70 shadow-sm hover:border-purple-400 transition-all">
+              <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+                  <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </div>
+              <span class="text-xs font-semibold text-slate-700 truncate">Analytics</span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <!-- Hero Right Column: 3D Isometric CPU Microchip & Orbiting Thread State Cards -->
+      <div class="lg:col-span-6 relative flex items-center justify-center min-h-[460px] select-none" data-purpose="hero-isometric-graphic">
+        <!-- Subtle Ambient Background Glow Rings -->
+        <div class="absolute w-[420px] h-[420px] rounded-full bg-gradient-to-tr from-blue-300/30 to-purple-300/30 blur-2xl -z-10 pointer-events-none"></div>
+        <div class="absolute w-[320px] h-[320px] rounded-full border border-indigo-200/50 animate-ring -z-10 pointer-events-none"></div>
+        
+        <!-- Central Isometric 3D Microchip Construction -->
+        <div class="iso-stage relative z-10 w-72 h-72 flex items-center justify-center">
+          <a href="/dashboard" class="iso-chip-container relative w-48 h-48 cursor-pointer block" title="Click to enter Multithreading Dashboard">
+            <!-- CPU Substrate Base Layer -->
+            <div class="absolute inset-0 rounded-3xl bg-blue-900/90 translate-y-6 shadow-2xl"></div>
+            <!-- CPU Interposer Layer -->
+            <div class="absolute inset-0 rounded-3xl bg-indigo-700/80 translate-y-3 border-2 border-indigo-400/40"></div>
+            <!-- CPU Top Die -->
+            <div class="chip-slab-top absolute inset-0 rounded-3xl border-2 border-cyan-300/40 p-3.5 flex flex-col justify-between text-white">
+              <div class="flex justify-between items-center text-[10px] text-cyan-200 font-mono tracking-widest opacity-80">
+                <span>0x8024</span>
+                <span>KERNEL</span>
+              </div>
+              <div class="flex flex-col items-center justify-center my-auto">
+                <div class="relative">
+                  <div class="w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-inner">
+                    <span class="text-3xl font-black tracking-tight text-white drop-shadow-md">OS</span>
+                  </div>
+                  <span class="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-400"></span>
+                  </span>
+                </div>
+                <span class="text-[11px] font-mono mt-2 tracking-wider text-cyan-100 uppercase">Multi-Core</span>
+              </div>
+              <div class="flex justify-between items-center text-[9px] font-mono text-cyan-200/90">
+                <span>TH-DISPATCH</span>
+                <span class="text-emerald-300 font-bold">ACTIVE</span>
+              </div>
+            </div>
+            <!-- Heat Spreader Gold Contact Pins -->
+            <div class="absolute -bottom-2 inset-x-4 flex justify-between px-1 pointer-events-none">
+              <span class="w-1.5 h-3 bg-amber-400 rounded-sm"></span>
+              <span class="w-1.5 h-3 bg-amber-400 rounded-sm"></span>
+              <span class="w-1.5 h-3 bg-amber-400 rounded-sm"></span>
+              <span class="w-1.5 h-3 bg-amber-400 rounded-sm"></span>
+              <span class="w-1.5 h-3 bg-amber-400 rounded-sm"></span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Orbiting Thread State Floating Cards -->
+        <!-- Thread T2: Ready (Top Left Card) -->
+        <div class="absolute -top-2 left-6 sm:left-12 z-20 animate-float" data-purpose="thread-badge-ready">
+          <div class="bg-white/95 backdrop-blur-sm border border-blue-200/80 rounded-2xl px-4 py-2.5 shadow-lg shadow-blue-500/10 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-blue-100 text-blue-700 font-bold flex items-center justify-center text-sm">T2</div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                <p class="text-xs font-semibold text-slate-500">State</p>
+              </div>
+              <p class="text-sm font-bold text-blue-700">Ready</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thread T1: Running (Top Right Card) -->
+        <div class="absolute top-2 right-4 sm:right-10 z-20 animate-float-delayed" data-purpose="thread-badge-running">
+          <div class="bg-white/95 backdrop-blur-sm border border-emerald-200/80 rounded-2xl px-4 py-2.5 shadow-lg shadow-emerald-500/10 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 font-bold flex items-center justify-center text-sm">T1</div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <p class="text-xs font-semibold text-slate-500">Executing</p>
+              </div>
+              <p class="text-sm font-bold text-emerald-600">Running</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thread T3: Blocked (Bottom Left Card) -->
+        <div class="absolute bottom-6 left-4 sm:left-10 z-20 animate-float-slow" data-purpose="thread-badge-blocked">
+          <div class="bg-white/95 backdrop-blur-sm border border-amber-200/80 rounded-2xl px-4 py-2.5 shadow-lg shadow-amber-500/10 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 font-bold flex items-center justify-center text-sm">T3</div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                <p class="text-xs font-semibold text-slate-500">Lock Wait</p>
+              </div>
+              <p class="text-sm font-bold text-amber-600">Blocked</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thread T4: Waiting (Bottom Right Card) -->
+        <div class="absolute bottom-10 right-4 sm:right-12 z-20 animate-float" data-purpose="thread-badge-waiting">
+          <div class="bg-white/95 backdrop-blur-sm border border-purple-200/80 rounded-2xl px-4 py-2.5 shadow-lg shadow-purple-500/10 flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">T4</div>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                <p class="text-xs font-semibold text-slate-500">Queue</p>
+              </div>
+              <p class="text-sm font-bold text-purple-600">Waiting</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <!-- END: HeroSection -->
+
+  <!-- BEGIN: FeatureCardsSection -->
+  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 border-t border-indigo-100/70" id="features">
+    <div class="text-center max-w-2xl mx-auto mb-12">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-2">Pedagogical OS Architecture</h2>
+      <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Everything You Need to Master Multithreading</h3>
+      <p class="text-sm text-slate-600 mt-2 font-normal">Explore each dimension of thread management through interactive playgrounds and live execution logs.</p>
+    </div>
+    <!-- 4 Key Visual Showcase Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Card 1: Gantt Chart Simulation -->
+      <a href="/cpu-scheduling" class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between">
+        <div>
+          <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+              <path d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <h4 class="text-base font-bold text-slate-900 mb-2">CPU Scheduling Gantt Chart</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Execute FCFS, SJF, Priority, and Round Robin algorithms. Track average waiting and turnaround metrics live.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-blue-600">
+          <span>Inspect Algorithms</span>
+          <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        </div>
+      </a>
+      <!-- Card 2: Synchronization & Mutex Playground -->
+      <a href="/synchronization-lab" class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between">
+        <div>
+          <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+              <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <h4 class="text-base font-bold text-slate-900 mb-2">Race Condition &amp; Mutex</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Witness real race conditions on shared memory counters. Apply mutex locks and counting semaphores safely.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-purple-600">
+          <span>Explore Synchronization</span>
+          <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        </div>
+      </a>
+      <!-- Card 3: Deadlock Detection & RAG -->
+      <a href="/deadlock-lab" class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between">
+        <div>
+          <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+              <path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <h4 class="text-base font-bold text-slate-900 mb-2">Deadlock Detection &amp; RAG</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Construct Resource Allocation Graphs, detect circular waits automatically, and simulate Banker's Algorithm.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-rose-600">
+          <span>Simulate Deadlocks</span>
+          <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        </div>
+      </a>
+      <!-- Card 4: Thread Lifecycle & Context Switching -->
+      <a href="/thread-lifecycle" class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow group flex flex-col justify-between">
+        <div>
+          <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24">
+              <path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </div>
+          <h4 class="text-base font-bold text-slate-900 mb-2">Thread Lifecycle Diagram</h4>
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Track thread states from New, Ready, Running to Terminated with interactive state transition graphs and events.
+          </p>
+        </div>
+        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center text-xs font-semibold text-emerald-600">
+          <span>View State Transitions</span>
+          <svg class="w-3.5 h-3.5 ml-1" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+        </div>
+      </a>
+    </div>
+  </section>
+  <!-- END: FeatureCardsSection -->
+
+  <!-- BEGIN: MainFooter -->
+  <footer class="border-t border-indigo-100 bg-white/70 py-8 text-center">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-700">ThreadLab</span>
+        <span>•</span>
+        <span>Computer Science Operating Systems Education</span>
+      </div>
+      <div>
+        Designed for OS students, professors, and systems researchers.
+      </div>
+    </div>
+  </footer>
+  <!-- END: MainFooter -->
+</body>
+</html>
+

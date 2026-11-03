@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Thread Manager - ThreadLab Multithreading Simulator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    @layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}
+    ::-webkit-scrollbar{display:none;}
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "inverse-on-surface": "#ecf1ff",
+            "secondary-container": "#8455ef",
+            "on-primary-container": "#eeefff",
+            "on-tertiary": "#ffffff",
+            "on-error-container": "#93000a",
+            "surface-bright": "#f9f9ff",
+            "secondary-fixed": "#e9ddff",
+            "secondary": "#6b38d4",
+            "primary": "#004ac6",
+            "surface-container": "#e7eeff",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed": "#00174b",
+            "primary-fixed": "#dbe1ff",
+            "inverse-primary": "#b4c5ff",
+            "primary-fixed-dim": "#b4c5ff",
+            "surface-container-highest": "#d8e3fb",
+            "background": "#f9f9ff",
+            "on-tertiary-fixed": "#21005e",
+            "tertiary-fixed": "#e8ddff",
+            "on-tertiary-container": "#f5edff",
+            "on-surface-variant": "#434655",
+            "tertiary": "#5d41ab",
+            "surface": "#f9f9ff",
+            "surface-tint": "#0053db",
+            "on-background": "#111c2d",
+            "surface-container-high": "#dee8ff",
+            "tertiary-container": "#765ac5",
+            "primary-container": "#2563eb",
+            "on-error": "#ffffff",
+            "on-secondary": "#ffffff",
+            "on-surface": "#111c2d",
+            "surface-container-low": "#f0f3ff",
+            "tertiary-fixed-dim": "#cebdff",
+            "surface-dim": "#cfdaf2",
+            "outline-variant": "#c3c6d7",
+            "on-primary": "#ffffff",
+            "on-primary-fixed-variant": "#003ea8",
+            "error": "#ba1a1a",
+            "on-secondary-fixed": "#23005c",
+            "inverse-surface": "#263143",
+            "on-secondary-container": "#fffbff",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#d0bcff",
+            "on-tertiary-fixed-variant": "#4f319c",
+            "on-secondary-fixed-variant": "#5516be",
+            "surface-variant": "#d8e3fb",
+            "outline": "#737686"
+          },
+          borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+          spacing: {
+            "space-2xl": "2.5rem",
+            "space-md": "0.75rem",
+            "space-xl": "1.75rem",
+            "margin-desktop": "2rem",
+            "margin": "1rem",
+            "space-lg": "1.25rem",
+            "gutter-desktop": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "gutter": "1rem"
+          },
+          fontFamily: {
+            "headline-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "counter-mono": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "display-mobile": ["Inter"],
+            "body-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "status-badge": ["Inter"],
+            "display": ["Inter"],
+            "label-mono": ["JetBrains Mono"],
+            "headline-md": ["Inter"]
+          },
+          fontSize: {
+            "headline-sm": ["16px", { lineHeight: "24px", letterSpacing: "-0.005em", fontWeight: "600" }],
+            "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.015em", fontWeight: "600" }],
+            "counter-mono": ["18px", { lineHeight: "24px", fontWeight: "600" }],
+            "body-sm": ["12px", { lineHeight: "18px", fontWeight: "400" }],
+            "display-mobile": ["26px", { lineHeight: "34px", letterSpacing: "-0.01em", fontWeight: "700" }],
+            "body-md": ["13px", { lineHeight: "20px", fontWeight: "400" }],
+            "body-lg": ["15px", { lineHeight: "24px", fontWeight: "400" }],
+            "status-badge": ["11px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "600" }],
+            "display": ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+            "label-mono": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+            "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "600" }]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+  <!-- SIDEBAR NAVIGATION (7 Simplified Pillars) -->
+  <aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_16px_rgba(37,99,235,0.06)]">
+    <div class="flex flex-col">
+      <a href="/" class="h-16 flex items-center px-space-lg gap-space-sm bg-surface-container-lowest border-b border-surface-container-high/40">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white shadow-sm font-bold text-sm">
+          TL
+        </div>
+        <div class="flex flex-col">
+          <span class="font-headline-sm text-headline-sm text-on-surface leading-tight tracking-tight">ThreadLab</span>
+          <span class="font-label-mono text-label-mono text-outline leading-none text-[10px]">Simulation of Multithreading</span>
+        </div>
+      </a>
+      <div class="px-space-md py-space-xs">
+        <div class="px-space-sm py-space-xs font-label-mono text-label-mono uppercase tracking-wider text-outline text-[10px]">Simulations &amp; Labs</div>
+      </div>
+      <nav class="px-space-md flex flex-col gap-1">
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="dashboard" href="/dashboard">
+          <span class="material-symbols-outlined text-[19px]">space_dashboard</span>
+          <span class="font-body-md text-body-md">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl transition-all bg-gradient-to-r from-primary-container to-secondary text-on-primary shadow-[0_4px_12px_rgba(37,99,235,0.25)] font-semibold" data-path="thread-manager" href="/thread-manager">
+          <span class="material-symbols-outlined text-[19px]">tune</span>
+          <span class="font-body-md text-body-md">Thread Manager</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="cpu-scheduling" href="/cpu-scheduling">
+          <span class="material-symbols-outlined text-[19px]">memory</span>
+          <span class="font-body-md text-body-md">CPU Scheduler</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="thread-lifecycle" href="/thread-lifecycle">
+          <span class="material-symbols-outlined text-[19px]">timeline</span>
+          <span class="font-body-md text-body-md">Thread Lifecycle</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="synchronization" href="/synchronization">
+          <span class="material-symbols-outlined text-[19px]">lock_reset</span>
+          <span class="font-body-md text-body-md">Synchronization Lab</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="deadlock" href="/deadlock">
+          <span class="material-symbols-outlined text-[19px]">warning</span>
+          <span class="font-body-md text-body-md">Deadlock Lab</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" data-path="analytics" href="/analytics">
+          <span class="material-symbols-outlined text-[19px]">analytics</span>
+          <span class="font-body-md text-body-md">Analytics</span>
+        </a>
+      </nav>
+    </div>
+    
+    <!-- Sidebar Footer -->
+    <div class="p-space-md flex flex-col gap-space-sm">
+      <div class="bg-surface-container-low rounded-xl p-space-md shadow-[0_2px_8px_rgba(37,99,235,0.04)]">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-status-badge text-status-badge text-primary uppercase font-bold tracking-wider">OS Simulator</span>
+          <span class="material-symbols-outlined text-secondary text-[16px] animate-spin">sync</span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">Deterministic Multithreading Workbench.</p>
+      </div>
+      <div class="flex items-center justify-between p-space-sm rounded-xl bg-surface-container-lowest shadow-[0_2px_6px_rgba(0,0,0,0.03)]">
+        <div class="flex items-center gap-space-sm">
+          <div class="relative">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white font-bold text-xs">N</div>
+            <span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-surface-container-lowest"></span>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-body-md text-body-md text-on-surface font-semibold leading-tight">Nikhil</span>
+            <span class="font-status-badge text-status-badge text-on-surface-variant leading-none">Student Role</span>
+          </div>
+        </div>
+        <a href="/login" class="text-outline hover:text-primary transition-colors p-1 rounded-lg hover:bg-surface-container-low" title="Account / Sign Out">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOP HEADER & MAIN VIEW -->
+  <div class="pl-64">
+    <header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(37,99,235,0.04)] z-40 flex items-center justify-between px-space-lg">
+      <div class="flex items-center gap-space-md">
+        <div class="flex items-center gap-2 font-body-sm text-body-sm text-outline">
+          <a href="/dashboard" class="hover:text-primary transition-colors cursor-pointer">Platform</a>
+          <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+          <span class="text-on-surface font-semibold">Thread Manager</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-lg">
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span>
+          <input class="h-9 pl-9 pr-12 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm text-body-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search threads, IDs..." type="text"/>
+          <span class="absolute right-2 px-1.5 py-0.5 rounded-md bg-surface-container-lowest text-outline font-label-mono text-[11px] shadow-sm">⌘K</span>
+        </div>
+        <div class="flex items-center gap-space-sm">
+          <a href="/learning" class="p-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" title="Help & Educational Guide">
+            <span class="material-symbols-outlined text-[20px]">help_outline</span>
+          </a>
+        </div>
+        <div class="h-6 w-[1px] bg-surface-container"></div>
+        <div class="flex items-center gap-space-sm bg-surface-container-low py-1 px-space-sm rounded-full">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white font-bold text-xs">N</div>
+          <div class="flex flex-col text-left">
+            <span class="font-body-sm text-body-sm font-semibold text-on-surface leading-tight">Nikhil</span>
+            <span class="font-status-badge text-[10px] text-primary uppercase font-bold leading-none">Lab Active</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="relative pt-16 w-full min-h-screen bg-background pb-12">
+      <div class="flex flex-col w-full">
+        <div class="p-space-lg max-w-7xl mx-auto w-full flex flex-col gap-space-lg">
+          
+          <!-- Top Action Bar & Header Section -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md bg-surface-container-lowest p-space-lg rounded-2xl shadow-[0_4px_16px_-2px_rgba(37,99,235,0.05),0_2px_6px_-1px_rgba(139,92,246,0.04)]">
+            <div class="flex flex-col">
+              <div class="flex items-center gap-space-sm mb-1">
+                <div class="w-9 h-9 rounded-xl bg-primary-fixed flex items-center justify-center text-primary shadow-sm">
+                  <span class="material-symbols-outlined text-[22px]">tune</span>
+                </div>
+                <h1 class="font-headline-lg text-headline-lg text-on-surface tracking-tight">Thread Manager</h1>
+                <span class="font-status-badge text-status-badge uppercase bg-surface-container-high text-primary px-2.5 py-0.5 rounded-full font-bold ml-2">Kernel TCB Registry</span>
+              </div>
+              <p class="font-body-md text-body-md text-on-surface-variant">Create, configure, prioritize, and monitor simulated execution threads with full validation.</p>
+            </div>
+            <!-- Action Buttons -->
+            <div class="flex items-center flex-wrap gap-space-sm">
+              <button class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container-low hover:bg-surface-container text-primary transition-all shadow-sm font-body-md text-body-md font-semibold" id="btn-load-preset">
+                <span class="material-symbols-outlined text-[18px]">dataset</span>
+                <span>Load Preset (T1–T4)</span>
+              </button>
+              <button class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container-lowest text-on-surface hover:bg-surface-container-low hover:text-primary transition-all shadow-sm font-body-md text-body-md font-medium" id="btn-import-threads">
+                <span class="material-symbols-outlined text-[18px] text-outline">file_upload</span>
+                <span>Import</span>
+              </button>
+              <button class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-surface-container-lowest text-on-surface hover:bg-surface-container-low hover:text-primary transition-all shadow-sm font-body-md text-body-md font-medium" id="btn-export-threads">
+                <span class="material-symbols-outlined text-[18px] text-outline">file_download</span>
+                <span>Export</span>
+              </button>
+              <button class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-surface-container-lowest text-error hover:bg-error-container hover:text-on-error-container transition-all shadow-sm font-body-md text-body-md font-medium" id="clear-all-btn">
+                <span class="material-symbols-outlined text-[18px]">delete_sweep</span>
+                <span>Clear All</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Status Counter Badges / Summary Row -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-space-md">
+            <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="font-body-sm text-body-sm text-outline font-medium">Total Threads</span>
+                <span class="font-counter-mono text-display text-on-surface leading-tight mt-1" id="metric-total">0</span>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-primary-fixed flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[24px]">view_timeline</span>
+              </div>
+            </div>
+            <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="font-body-sm text-body-sm text-outline font-medium">Running</span>
+                <span class="font-counter-mono text-display text-emerald-600 leading-tight mt-1" id="metric-running">0</span>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
+                <span class="material-symbols-outlined text-[24px]">play_circle</span>
+              </div>
+            </div>
+            <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="font-body-sm text-body-sm text-outline font-medium">Ready</span>
+                <span class="font-counter-mono text-display text-primary leading-tight mt-1" id="metric-ready">0</span>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-surface-container-high flex items-center justify-center text-primary">
+                <span class="material-symbols-outlined text-[24px]">hourglass_top</span>
+              </div>
+            </div>
+            <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="font-body-sm text-body-sm text-outline font-medium">Blocked</span>
+                <span class="font-counter-mono text-display text-amber-600 leading-tight mt-1" id="metric-blocked">0</span>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center text-amber-600">
+                <span class="material-symbols-outlined text-[24px]">lock_clock</span>
+              </div>
+            </div>
+            <div class="bg-surface-container-lowest p-space-md rounded-2xl shadow-sm flex items-center justify-between col-span-2 sm:col-span-1">
+              <div class="flex flex-col">
+                <span class="font-body-sm text-body-sm text-outline font-medium">Terminated</span>
+                <span class="font-counter-mono text-display text-on-surface-variant leading-tight mt-1" id="metric-terminated">0</span>
+              </div>
+              <div class="w-11 h-11 rounded-xl bg-surface-container-low flex items-center justify-center text-outline">
+                <span class="material-symbols-outlined text-[24px]">task_alt</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Two-Column Workspace -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start">
+            
+            <!-- Left Column: Create/Configure Thread Form (4 Columns) -->
+            <div class="lg:col-span-4 bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm flex flex-col gap-space-md">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-space-sm">
+                  <span class="material-symbols-outlined text-secondary text-[22px]">post_add</span>
+                  <h2 class="font-headline-sm text-headline-sm text-on-surface">Thread Configuration</h2>
+                </div>
+                <span class="font-label-mono text-[11px] px-2 py-0.5 rounded-md bg-surface-container-low text-outline">TCB Form</span>
+              </div>
+              <p class="font-body-sm text-body-sm text-on-surface-variant">Validated thread parameters: Unique ID, non-negative arrival, positive burst, priority &ge; 1.</p>
+
+              <form class="flex flex-col gap-space-md mt-1" id="thread-create-form" onsubmit="event.preventDefault(); addNewThread();">
+                <!-- Thread ID -->
+                <div class="flex flex-col gap-1">
+                  <label class="font-body-sm text-body-sm font-semibold text-on-surface flex justify-between" for="thread-id">
+                    <span>Thread Identifier</span>
+                    <span class="font-label-mono text-outline text-[11px]">Must be unique (e.g. T5)</span>
+                  </label>
+                  <div class="relative flex items-center">
+                    <span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">fingerprint</span>
+                    <input class="w-full h-10 pl-9 pr-3 rounded-xl bg-surface-container-low text-on-surface font-label-mono text-label-mono focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all" id="thread-id" placeholder="T5" required="" type="text" value="T5"/>
+                  </div>
+                </div>
+
+                <!-- Name Field -->
+                <div class="flex flex-col gap-1">
+                  <label class="font-body-sm text-body-sm font-semibold text-on-surface" for="thread-name">Thread Name</label>
+                  <input class="w-full h-10 px-3 rounded-xl bg-surface-container-low text-on-surface font-body-sm focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all" id="thread-name" placeholder="Worker-Job" type="text" value="Worker-Compute"/>
+                </div>
+
+                <!-- Arrival & Burst Time Grid -->
+                <div class="grid grid-cols-2 gap-space-sm">
+                  <div class="flex flex-col gap-1">
+                    <label class="font-body-sm text-body-sm font-medium text-on-surface" for="arrival-time">Arrival Time (units)</label>
+                    <input class="w-full h-10 px-3 rounded-xl bg-surface-container-low text-on-surface font-label-mono text-label-mono focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all" id="arrival-time" min="0" required="" type="number" value="0"/>
+                  </div>
+                  <div class="flex flex-col gap-1">
+                    <label class="font-body-sm text-body-sm font-medium text-on-surface" for="burst-time">Burst Time (units)</label>
+                    <input class="w-full h-10 px-3 rounded-xl bg-surface-container-low text-on-surface font-label-mono text-label-mono focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 transition-all" id="burst-time" max="64" min="1" required="" type="number" value="6"/>
+                  </div>
+                </div>
+
+                <!-- Priority Select -->
+                <div class="flex flex-col gap-1">
+                  <label class="font-body-sm text-body-sm font-semibold text-on-surface" for="thread-priority">Scheduling Priority (1 = Highest)</label>
+                  <div class="relative flex items-center">
+                    <span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">low_priority</span>
+                    <select class="w-full h-10 pl-9 pr-8 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 appearance-none transition-all" id="thread-priority">
+                      <option value="1">Priority 1 (Highest - Kernel Priority)</option>
+                      <option selected="" value="2">Priority 2 (Normal - Application)</option>
+                      <option value="3">Priority 3 (Low - Background Workload)</option>
+                      <option value="4">Priority 4 (Lowest)</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-2.5 text-outline pointer-events-none text-[18px]">expand_more</span>
+                  </div>
+                </div>
+
+                <!-- Initial State -->
+                <div class="flex flex-col gap-1">
+                  <label class="font-body-sm text-body-sm font-semibold text-on-surface" for="thread-state">Initial State</label>
+                  <select class="w-full h-10 px-3 rounded-xl bg-surface-container-low text-on-surface font-body-md text-body-md focus:outline-none focus:bg-surface-container-lowest focus:ring-2 focus:ring-primary/20 appearance-none transition-all" id="thread-state">
+                    <option value="READY" selected>READY (Queued for execution)</option>
+                    <option value="NEW">NEW (Just instantiated)</option>
+                    <option value="BLOCKED">BLOCKED (Waiting on I/O or mutex)</option>
+                  </select>
+                </div>
+
+                <!-- Buttons Action -->
+                <div class="flex items-center gap-space-sm pt-2">
+                  <button class="flex-1 flex items-center justify-center gap-1.5 h-10 rounded-xl bg-gradient-to-r from-primary-container to-secondary text-on-primary font-headline-sm text-body-md shadow-sm hover:brightness-105 active:scale-95 transition-all" type="submit">
+                    <span class="material-symbols-outlined text-[18px]">add_task</span>
+                    <span>Add Thread</span>
+                  </button>
+                  <button class="px-4 h-10 rounded-xl bg-surface-container-low text-on-surface hover:bg-surface-container hover:text-error transition-all font-body-md text-body-md font-medium" type="reset">
+                    Reset
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- Right Column: Thread Pool Table (8 Columns) -->
+            <div class="lg:col-span-8 bg-surface-container-lowest rounded-2xl p-space-lg shadow-sm flex flex-col gap-space-md">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+                <div class="flex items-center gap-space-sm">
+                  <div class="w-8 h-8 rounded-lg bg-surface-container-high flex items-center justify-center text-primary">
+                    <span class="material-symbols-outlined text-[20px]">format_list_numbered</span>
+                  </div>
+                  <div class="flex flex-col">
+                    <h2 class="font-headline-sm text-headline-sm text-on-surface">Thread Pool Active Table</h2>
+                    <span class="font-body-sm text-[12px] text-outline" id="active-threads-counter">0 threads allocated</span>
+                  </div>
+                </div>
+                <!-- Filter / Search Actions -->
+                <div class="flex items-center gap-space-sm">
+                  <div class="relative">
+                    <span class="material-symbols-outlined absolute left-2.5 top-2 text-outline text-[16px]">filter_list</span>
+                    <select class="h-8 pl-8 pr-7 text-xs rounded-lg bg-surface-container-low text-on-surface focus:outline-none appearance-none font-body-sm cursor-pointer" id="state-filter" onchange="renderThreadTable()">
+                      <option value="all">All States</option>
+                      <option value="RUNNING">Running</option>
+                      <option value="READY">Ready</option>
+                      <option value="BLOCKED">Blocked</option>
+                      <option value="TERMINATED">Terminated</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-1.5 top-2 text-outline pointer-events-none text-[16px]">expand_more</span>
+                  </div>
+                  <button class="h-8 px-2.5 rounded-lg bg-surface-container-low text-on-surface hover:bg-surface-container hover:text-primary transition-all font-body-sm text-[12px] flex items-center gap-1" onclick="sortByBurst()" title="Sort by Burst Time">
+                    <span class="material-symbols-outlined text-[15px]">sort</span>
+                    <span>Sort (SJF)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Responsive Table Container -->
+              <div class="w-full overflow-x-auto rounded-xl bg-surface-container-lowest">
+                <table class="w-full text-left border-collapse" id="thread-table">
+                  <thead>
+                    <tr class="bg-surface-container-low text-on-surface-variant font-status-badge text-status-badge uppercase tracking-wider">
+                      <th class="py-3 px-4">Thread ID</th>
+                      <th class="py-3 px-3">Arrival</th>
+                      <th class="py-3 px-3">Burst</th>
+                      <th class="py-3 px-3">Priority</th>
+                      <th class="py-3 px-4">State</th>
+                      <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-surface-container-low font-body-md text-body-md" id="thread-tbody">
+                    <!-- Dynamic content -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <input type="file" id="import-file-input" class="hidden" accept=".json,.csv"/>
+
+  <script src="/frontend/js/api.js"></script>
+  <script src="/frontend/js/navigation.js"></script>
+  <script>
+    let localThreads = [];
+
+    async function loadThreads() {
+      try {
+        const res = await ThreadLabAPI.getThreads();
+        if (res.success) {
+          localThreads = res.threads;
+          updateCounters(res.stats);
+          renderThreadTable();
+        }
+      } catch (err) {
+        showToast('Error loading threads: ' + err.message, 'error');
+      }
+    }
+
+    function updateCounters(stats) {
+      document.getElementById('metric-total').textContent = stats.total || 0;
+      document.getElementById('metric-running').textContent = stats.running || 0;
+      document.getElementById('metric-ready').textContent = stats.ready || 0;
+      document.getElementById('metric-blocked').textContent = stats.blocked || 0;
+      document.getElementById('metric-terminated').textContent = stats.terminated || 0;
+      document.getElementById('active-threads-counter').textContent = `${stats.total || 0} concurrent execution contexts allocated`;
+    }
+
+    function renderThreadTable() {
+      const tbody = document.getElementById('thread-tbody');
+      tbody.innerHTML = '';
+
+      const filterVal = document.getElementById('state-filter').value;
+      const filtered = localThreads.filter(t => filterVal === 'all' || t.state.toUpperCase() === filterVal.toUpperCase());
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-8 text-center text-outline font-body-sm">
+              No threads found in thread pool. Click "Add Thread" or "Load Preset" to populate.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.forEach(t => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-surface-container-low/50 transition-colors group';
+
+        const isRun = t.state === 'RUNNING';
+        const isReady = t.state === 'READY';
+        const isBlocked = t.state === 'BLOCKED';
+        const isTerm = t.state === 'TERMINATED';
+
+        let badgeStyle = 'bg-blue-100 text-blue-800';
+        let pulseDot = `<span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span>`;
+        if (isRun) {
+          badgeStyle = 'bg-emerald-100 text-emerald-800';
+          pulseDot = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>`;
+        } else if (isBlocked) {
+          badgeStyle = 'bg-amber-100 text-amber-800';
+          pulseDot = `<span class="material-symbols-outlined text-[12px] text-amber-700">lock</span>`;
+        } else if (isTerm) {
+          badgeStyle = 'bg-slate-100 text-slate-700';
+          pulseDot = `<span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>`;
+        }
+
+        const prioTag = t.priority === 1 ? '1 (High)' : (t.priority === 2 ? '2 (Norm)' : `${t.priority} (Low)`);
+        const prioClass = t.priority === 1 ? 'bg-purple-100 text-secondary' : 'bg-surface-container-high text-primary';
+
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 font-label-mono font-bold flex items-center gap-2">
+            <span class="w-6 h-6 rounded-md flex items-center justify-center text-white text-xs font-bold" style="background-color: ${t.color || '#2563EB'}">${t.id}</span>
+            <span class="text-on-surface">${t.name || t.id}</span>
+          </td>
+          <td class="py-3.5 px-3 font-label-mono text-outline">${t.arrival_time} units</td>
+          <td class="py-3.5 px-3 font-label-mono font-semibold text-on-surface">${t.burst_time} units</td>
+          <td class="py-3.5 px-3 font-label-mono">
+            <span class="px-2 py-0.5 rounded ${prioClass} font-semibold text-[11px]">${prioTag}</span>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full ${badgeStyle} font-status-badge text-[11px] font-semibold">
+              ${pulseDot}
+              ${t.state}
+            </span>
+          </td>
+          <td class="py-3.5 px-4 text-right">
+            <div class="flex items-center justify-end gap-1 opacity-90 group-hover:opacity-100 transition-opacity">
+              <button class="p-1.5 rounded-lg hover:bg-surface-container text-outline hover:text-primary transition-colors" onclick="toggleThreadState('${t.id}')" title="Cycle State">
+                <span class="material-symbols-outlined text-[18px]">${isRun ? 'pause' : 'play_arrow'}</span>
+              </button>
+              <button class="p-1.5 rounded-lg hover:bg-error-container text-outline hover:text-error transition-colors" onclick="removeThread('${t.id}')" title="Delete">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function addNewThread() {
+      const idInput = document.getElementById('thread-id').value.trim();
+      const nameInput = document.getElementById('thread-name').value.trim();
+      const arrival = parseInt(document.getElementById('arrival-time').value, 10);
+      const burst = parseInt(document.getElementById('burst-time').value, 10);
+      const priority = parseInt(document.getElementById('thread-priority').value, 10);
+      const state = document.getElementById('thread-state').value;
+
+      // Frontend validation
+      if (!idInput) {
+        showToast('Thread Identifier is required.', 'error');
+        return;
+      }
+      if (isNaN(arrival) || arrival < 0) {
+        showToast('Arrival time cannot be negative.', 'error');
+        return;
+      }
+      if (isNaN(burst) || burst <= 0) {
+        showToast('Burst time must be greater than zero.', 'error');
+        return;
+      }
+      if (isNaN(priority) || priority < 1) {
+        showToast('Priority must be 1 or greater.', 'error');
+        return;
+      }
+
+      try {
+        await ThreadLabAPI.createThread({
+          id: idInput,
+          name: nameInput,
+          arrival_time: arrival,
+          burst_time: burst,
+          priority: priority,
+          state: state
+        });
+        showToast(`Thread ${idInput} created successfully!`, 'success');
+        
+        // Auto increment next ID suggestion
+        const nextNum = parseInt(idInput.replace(/\D/g, '') || '0', 10) + 1;
+        document.getElementById('thread-id').value = `T${nextNum}`;
+        await loadThreads();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function toggleThreadState(threadId) {
+      const thread = localThreads.find(t => t.id === threadId);
+      if (!thread) return;
+      const nextStateMap = {
+        'NEW': 'READY',
+        'READY': 'RUNNING',
+        'RUNNING': 'BLOCKED',
+        'BLOCKED': 'READY',
+        'TERMINATED': 'READY'
+      };
+      const nextState = nextStateMap[thread.state] || 'READY';
+      try {
+        await ThreadLabAPI.updateThread(threadId, { state: nextState });
+        showToast(`${threadId} transitioned to ${nextState}`, 'info');
+        await loadThreads();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function removeThread(threadId) {
+      if (!confirm(`Are you sure you want to terminate and delete ${threadId}?`)) return;
+      try {
+        await ThreadLabAPI.deleteThread(threadId);
+        showToast(`Thread ${threadId} terminated and removed`, 'info');
+        await loadThreads();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    function sortByBurst() {
+      localThreads.sort((a, b) => a.burst_time - b.burst_time);
+      renderThreadTable();
+      showToast('Threads sorted by Burst Time (Shortest Job First order).', 'info');
+    }
+
+    // Load preset
+    document.getElementById('btn-load-preset')?.addEventListener('click', async () => {
+      try {
+        await ThreadLabAPI.loadPresetThreads();
+        showToast('Loaded standard multithreading preset (T1–T4).', 'success');
+        await loadThreads();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    // Clear All
+    document.getElementById('clear-all-btn')?.addEventListener('click', async () => {
+      if (!confirm('Clear all threads from the thread manager?')) return;
+      try {
+        await ThreadLabAPI.clearThreads();
+        showToast('All threads cleared.', 'info');
+        await loadThreads();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+
+    // Export Threads
+    document.getElementById('btn-export-threads')?.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(localThreads, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `threadlab-threads-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Thread configuration exported!', 'success');
+    });
+
+    // Import Threads
+    document.getElementById('btn-import-threads')?.addEventListener('click', () => {
+      document.getElementById('import-file-input').click();
+    });
+
+    document.getElementById('import-file-input')?.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (evt) => {
+        try {
+          const imported = JSON.parse(evt.target.result);
+          if (Array.isArray(imported)) {
+            for (const t of imported) {
+              try { await ThreadLabAPI.createThread(t); } catch (_) {}
+            }
+            showToast(`Imported ${imported.length} threads successfully!`, 'success');
+            await loadThreads();
+          }
+        } catch (err) {
+          showToast('Invalid JSON file format.', 'error');
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    window.addNewThread = addNewThread;
+    window.toggleThreadState = toggleThreadState;
+    window.removeThread = removeThread;
+    window.renderThreadTable = renderThreadTable;
+    window.sortByBurst = sortByBurst;
+
+    document.addEventListener('DOMContentLoaded', loadThreads);
+  </script>
+</body>
+</html>

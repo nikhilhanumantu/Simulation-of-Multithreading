@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Login - ThreadLab Multithreading Simulator</title>
+  <!-- Tailwind CSS v3 with forms and container queries -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f5f3ff',
+              100: '#ede9fe',
+              500: '#8b5cf6',
+              600: '#7c3aed',
+              700: '#6d28d9'
+            },
+            accent: {
+              blue: '#2563eb',
+              cyan: '#06b6d4'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Typography & Global Layout Styles -->
+  <style data-purpose="typography">
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+  <style data-purpose="decorative-effects">
+    /* Subtle 3D and glow decorations */
+    .glow-mesh {
+      background: radial-gradient(circle at 10% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 45%),
+                  radial-gradient(circle at 90% 80%, rgba(37, 99, 235, 0.12) 0%, transparent 45%),
+                  radial-gradient(circle at 50% 50%, rgba(243, 232, 255, 0.4) 0%, transparent 60%);
+    }
+    .card-shadow {
+      box-shadow: 0 20px 40px -15px rgba(118, 106, 178, 0.12),
+                  0 0 1px 1px rgba(226, 232, 255, 0.8);
+    }
+    .float-slow {
+      animation: float 4s ease-in-out infinite;
+    }
+    .float-delayed {
+      animation: float 4.5s ease-in-out 1.5s infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+  </style>
+</head>
+<body class="bg-[#F6F8FE] text-slate-800 min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 glow-mesh">
+  <!-- BEGIN: MainContainer -->
+  <!-- Central authentication modal/card container replicating Screen 2 -->
+  <main class="w-full max-w-5xl bg-white rounded-3xl card-shadow border border-slate-100 overflow-hidden" data-purpose="auth-card">
+    <div class="grid grid-cols-1 lg:grid-cols-12 min-h-[620px]">
+      
+      <!-- BEGIN: LeftBrandShowcase -->
+      <!-- Left Side: Multithreading Visual Illustration, Logo, and Themed 3D Graphics -->
+      <section class="lg:col-span-7 bg-gradient-to-br from-[#EEF2FF] via-[#F5F3FF] to-[#FAF5FF] p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden border-b lg:border-b-0 lg:border-r border-slate-100" data-purpose="brand-illustration-pane">
+        <!-- Background Ambient Circuit Glows -->
+        <div aria-hidden="true" class="absolute -right-20 -top-20 w-72 h-72 bg-violet-200/50 rounded-full blur-3xl pointer-events-none"></div>
+        <div aria-hidden="true" class="absolute -left-20 -bottom-20 w-72 h-72 bg-blue-200/50 rounded-full blur-3xl pointer-events-none"></div>
+
+        <!-- Brand Header Logo -->
+        <header class="relative z-10 flex items-center gap-3">
+          <a href="/" class="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-violet-500/25 transition-transform hover:scale-105" data-purpose="app-icon" title="ThreadLab Home">
+            <!-- CPU Microchip Icon -->
+            <svg class="w-6 h-6 stroke-current" fill="none" stroke-width="2" viewBox="0 0 24 24">
+              <rect height="14" rx="2.5" width="14" x="5" y="5"></rect>
+              <path d="M9 2v3m6-3v3m-6 14v3m6-3v3M2 9h3m-3 6h3m14-6h3m-3 6h3" stroke-linecap="round"></path>
+              <circle cx="12" cy="12" r="2.5"></circle>
+            </svg>
+          </a>
+          <div>
+            <h1 class="text-xl font-bold tracking-tight text-slate-900 leading-none">ThreadLab</h1>
+            <span class="text-xs font-semibold tracking-wide text-violet-600 uppercase">Multithreading Simulator</span>
+          </div>
+        </header>
+
+        <!-- Dynamic 3D Workspace Composition -->
+        <div class="relative my-8 lg:my-auto flex items-center justify-center" data-purpose="simulation-illustration">
+          
+          <!-- Floating Decorative Element: CPU Gears -->
+          <div class="absolute -left-2 sm:left-4 top-4 float-slow bg-white/90 backdrop-blur-md p-2.5 rounded-2xl shadow-lg border border-violet-100 flex items-center gap-2 z-20">
+            <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-xs">
+              ⚙️
+            </span>
+            <div class="pr-2">
+              <p class="text-[10px] uppercase font-bold text-slate-400 leading-none">Threads</p>
+              <p class="text-xs font-bold text-slate-800">4 Active</p>
+            </div>
+          </div>
+
+          <!-- Floating Decorative Element: Code Symbol Tag -->
+          <div class="absolute -right-2 sm:right-6 top-8 float-delayed bg-white/90 backdrop-blur-md px-3.5 py-2 rounded-2xl shadow-lg border border-violet-100 flex items-center gap-2 z-20">
+            <span class="text-xs font-bold bg-violet-100 text-violet-700 px-2 py-0.5 rounded-md font-mono">&lt;/&gt;</span>
+            <span class="text-xs font-medium text-slate-700">pthread_create()</span>
+          </div>
+
+          <!-- Main Illustrated Scene: Laptop Desk Workspace -->
+          <div class="relative w-full max-w-md mx-auto aspect-square max-h-[320px] flex items-center justify-center">
+            <!-- Desk Backdrop Monitor Illustration -->
+            <div class="w-64 sm:w-72 h-44 bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 rounded-2xl shadow-2xl p-3 border-2 border-slate-700/50 relative flex flex-col justify-between">
+              <!-- Window controls -->
+              <div class="flex items-center gap-1.5 pb-2 border-b border-slate-800">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                <span class="text-[10px] text-slate-400 font-mono ml-2">scheduler_engine.c</span>
+              </div>
+              <!-- Code simulation display -->
+              <div class="font-mono text-[11px] leading-relaxed space-y-1 text-slate-300 py-1">
+                <p><span class="text-violet-400">void*</span> <span class="text-blue-400">worker</span>(<span class="text-violet-400">void*</span> arg) {</p>
+                <p class="pl-4 text-emerald-400">mutex_lock(&amp;queue_lock);</p>
+                <p class="pl-4 text-slate-400">// Dispatch thread quantum</p>
+                <p class="pl-4 text-amber-300">execute_quantum(arg);</p>
+                <p class="pl-4 text-emerald-400">mutex_unlock(&amp;queue_lock);</p>
+                <p>}</p>
+              </div>
+              <!-- Monitor Base Stand -->
+              <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 w-16 h-6 bg-slate-300 rounded-b-md shadow-inner"></div>
+              <div class="absolute -bottom-7 left-1/2 -translate-x-1/2 w-28 h-2 bg-slate-400 rounded-full shadow"></div>
+            </div>
+
+            <!-- Foreground Student / Programmer Avatar SVG Representation -->
+            <div class="absolute bottom-2 -left-2 sm:left-4 z-20 flex flex-col items-center">
+              <div class="relative w-28 h-32 flex flex-col items-center">
+                <!-- Hair & Head -->
+                <div class="w-12 h-12 bg-[#332219] rounded-full relative flex items-center justify-center shadow-md">
+                  <div class="w-10 h-10 bg-[#FFD1A4] rounded-full mt-2 relative">
+                    <div class="w-1.5 h-1.5 bg-[#422] rounded-full absolute top-4 left-2.5"></div>
+                    <div class="w-1.5 h-1.5 bg-[#422] rounded-full absolute top-4 right-2.5"></div>
+                    <div class="w-3 h-1 border-b-2 border-rose-400 rounded-full absolute bottom-2 left-3.5"></div>
+                  </div>
+                </div>
+                <!-- Hoodie Body -->
+                <div class="w-20 h-16 bg-gradient-to-b from-blue-600 to-indigo-700 rounded-t-3xl shadow-lg relative -mt-1 flex justify-center">
+                  <!-- Laptop held -->
+                  <div class="absolute -bottom-2 w-20 h-9 bg-slate-200 rounded-t-lg shadow-md border-t-2 border-slate-100 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-slate-500" fill="currentColor" viewBox="0 0 24 24">
+                      <rect height="12" rx="2" width="12" x="6" y="6"></rect>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Desk Potted Plant (Right Side) -->
+            <div class="absolute bottom-4 right-6 z-10 flex flex-col items-center">
+              <!-- Foliage leaves -->
+              <div class="flex -space-x-2 -mb-1">
+                <span class="w-5 h-8 bg-emerald-500 rounded-full rotate-[-25deg] shadow-sm"></span>
+                <span class="w-6 h-9 bg-emerald-600 rounded-full shadow-sm"></span>
+                <span class="w-5 h-8 bg-teal-500 rounded-full rotate-[25deg] shadow-sm"></span>
+              </div>
+              <!-- Modern white geometric pot -->
+              <div class="w-9 h-9 bg-white border border-slate-200 shadow-md rounded-b-xl rounded-t-sm"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Left Footer Tagline -->
+        <footer class="relative z-10 pt-4 flex items-center justify-between text-xs text-slate-500 border-t border-slate-200/60">
+          <span class="flex items-center gap-1.5 font-medium text-slate-600">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+            Real-Time OS Engine v2.4
+          </span>
+          <span class="text-slate-400">Interactive Simulation Portal</span>
+        </footer>
+      </section>
+      <!-- END: LeftBrandShowcase -->
+
+      <!-- BEGIN: RightAuthForm -->
+      <!-- Right Side: Clean Authentication Form Card -->
+      <section class="lg:col-span-5 p-8 lg:p-12 flex flex-col justify-center bg-white" data-purpose="login-form-pane">
+        <div class="max-w-md w-full mx-auto">
+          
+          <!-- Header Greeting -->
+          <div class="mb-7" data-purpose="form-header">
+            <h2 class="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              Welcome Back <span class="animate-bounce">👋</span>
+            </h2>
+            <p class="text-sm text-slate-500 mt-1.5">
+              Sign in to continue your simulation journey
+            </p>
+          </div>
+
+          <!-- Main Sign In Form -->
+          <form class="space-y-4" data-purpose="credentials-form" id="loginForm" onsubmit="event.preventDefault(); handleLogin();">
+            <!-- Email Input Field -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold tracking-wide text-slate-600 uppercase" for="email">
+                Email Address
+              </label>
+              <div class="relative rounded-xl shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <!-- Mail Icon -->
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </div>
+                <input class="block w-full pl-10 pr-4 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all" id="email" name="email" placeholder="nikhil@example.com" required="" type="email" value="nikhil@example.com"/>
+              </div>
+            </div>
+
+            <!-- Password Input Field -->
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold tracking-wide text-slate-600 uppercase" for="password">
+                Password
+              </label>
+              <div class="relative rounded-xl shadow-sm">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <!-- Lock Icon -->
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <rect height="11" rx="2" ry="2" width="18" x="3" y="11"></rect>
+                    <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                  </svg>
+                </div>
+                <input class="block w-full pl-10 pr-10 py-2.5 bg-slate-50/70 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all" id="password" name="password" placeholder="••••••••••••" required="" type="password" value="supersecretpwd"/>
+                <!-- Toggle Password Visibility Icon -->
+                <button aria-label="Toggle password visibility" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none" data-purpose="password-visibility-toggle" id="togglePassword" type="button">
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.257-5.064 7-9.542 7-4.477 0-8.268-2.743-9.542-7z" stroke-linecap="round" stroke-linejoin="round"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Options: Remember Me & Forgot Password -->
+            <div class="flex items-center justify-between pt-1">
+              <label class="flex items-center gap-2 cursor-pointer select-none">
+                <input checked="" class="w-4 h-4 rounded text-violet-600 border-slate-300 focus:ring-violet-500 focus:ring-offset-0" name="remember_me" type="checkbox"/>
+                <span class="text-xs font-medium text-slate-600">Remember me</span>
+              </label>
+              <a class="text-xs font-semibold text-violet-600 hover:text-violet-700 hover:underline" href="#" onclick="alert('Demo Mode: Click Sign In to access the full multithreading workbench immediately.'); return false;">
+                Forgot password?
+              </a>
+            </div>
+
+            <!-- Primary Action Button: Sign In -->
+            <div class="pt-2">
+              <button class="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-violet-500/25 flex items-center justify-center gap-2 transition-all group" data-purpose="submit-button" id="submitBtn" type="submit">
+                <span>Sign In</span>
+                <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path d="M14 5l7 7m0 0l-7 7m7-7H3" stroke-linecap="round" stroke-linejoin="round"></path>
+                </svg>
+              </button>
+            </div>
+          </form>
+
+          <!-- Divider: Social & Institutional Sign In -->
+          <div class="relative my-6" data-purpose="alternative-login-divider">
+            <div aria-hidden="true" class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-slate-200"></div>
+            </div>
+            <div class="relative flex justify-center text-xs uppercase">
+              <span class="bg-white px-3 text-slate-400 font-medium">or continue with</span>
+            </div>
+          </div>
+
+          <!-- Social Login Buttons Row (Google & GitHub) -->
+          <div class="grid grid-cols-2 gap-3" data-purpose="social-login-actions">
+            <!-- Google Login Button -->
+            <button class="w-full inline-flex justify-center items-center py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium shadow-sm transition-colors" title="Sign in with Google" type="button" onclick="handleLogin()">
+              <svg class="w-4 h-4" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"></path>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"></path>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"></path>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"></path>
+              </svg>
+              <span class="sr-only">Google</span>
+            </button>
+            <!-- GitHub Login Button -->
+            <button class="w-full inline-flex justify-center items-center py-2.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-sm font-medium shadow-sm transition-colors" title="Sign in with GitHub" type="button" onclick="handleLogin()">
+              <svg class="w-4 h-4 fill-slate-800" viewBox="0 0 24 24">
+                <path clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" fill-rule="evenodd"></path>
+              </svg>
+              <span class="sr-only">GitHub</span>
+            </button>
+          </div>
+
+          <!-- Card Footer Signup Route -->
+          <p class="text-center text-xs text-slate-500 mt-6" data-purpose="registration-prompt">
+            Don't have an account? 
+            <a class="font-semibold text-violet-600 hover:text-violet-700 hover:underline" href="#" onclick="handleLogin(); return false;">
+              Create Account
+            </a>
+          </p>
+
+        </div>
+      </section>
+      <!-- END: RightAuthForm -->
+
+    </div>
+  </main>
+  <!-- END: MainContainer -->
+
+  <!-- JavaScript: Password visibility toggle & Login Navigation -->
+  <script data-purpose="form-interactions">
+    function handleLogin() {
+      const btn = document.getElementById('submitBtn');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span>Signing In...</span>`;
+      }
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 300);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const toggleBtn = document.getElementById('togglePassword');
+      const passwordInput = document.getElementById('password');
+
+      if (toggleBtn && passwordInput) {
+        toggleBtn.addEventListener('click', () => {
+          const isPassword = passwordInput.getAttribute('type') === 'password';
+          passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+        });
+      }
+    });
+  </script>
+</body>
+</html>

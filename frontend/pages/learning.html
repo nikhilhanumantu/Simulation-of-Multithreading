@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Learning Mode – ThreadLab</title>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin=""/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    @layer base {
+      html, body { margin: 0; padding: 0; }
+      body { overscroll-behavior: none; }
+    }
+    ::-webkit-scrollbar { display: none; }
+  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "inverse-on-surface": "#ecf1ff",
+            "secondary-container": "#8455ef",
+            "on-primary-container": "#eeefff",
+            "on-tertiary": "#ffffff",
+            "on-error-container": "#93000a",
+            "surface-bright": "#f9f9ff",
+            "secondary-fixed": "#e9ddff",
+            "secondary": "#6b38d4",
+            "primary": "#004ac6",
+            "surface-container": "#e7eeff",
+            "surface-container-lowest": "#ffffff",
+            "on-primary-fixed": "#00174b",
+            "primary-fixed": "#dbe1ff",
+            "inverse-primary": "#b4c5ff",
+            "primary-fixed-dim": "#b4c5ff",
+            "surface-container-highest": "#d8e3fb",
+            "background": "#f9f9ff",
+            "on-tertiary-fixed": "#21005e",
+            "tertiary-fixed": "#e8ddff",
+            "on-tertiary-container": "#f5edff",
+            "on-surface-variant": "#434655",
+            "tertiary": "#5d41ab",
+            "surface": "#f9f9ff",
+            "surface-tint": "#0053db",
+            "on-background": "#111c2d",
+            "surface-container-high": "#dee8ff",
+            "tertiary-container": "#765ac5",
+            "primary-container": "#2563eb",
+            "on-error": "#ffffff",
+            "on-secondary": "#ffffff",
+            "on-surface": "#111c2d",
+            "surface-container-low": "#f0f3ff",
+            "tertiary-fixed-dim": "#cebdff",
+            "surface-dim": "#cfdaf2",
+            "outline-variant": "#c3c6d7",
+            "on-primary": "#ffffff",
+            "on-primary-fixed-variant": "#003ea8",
+            "error": "#ba1a1a",
+            "on-secondary-fixed": "#23005c",
+            "inverse-surface": "#263143",
+            "on-secondary-container": "#fffbff",
+            "error-container": "#ffdad6",
+            "secondary-fixed-dim": "#d0bcff",
+            "on-tertiary-fixed-variant": "#4f319c",
+            "on-secondary-fixed-variant": "#5516be",
+            "surface-variant": "#d8e3fb",
+            "outline": "#737686"
+          },
+          borderRadius: { DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px" },
+          spacing: {
+            "space-2xl": "2.5rem",
+            "space-md": "0.75rem",
+            "space-xl": "1.75rem",
+            "margin-desktop": "2rem",
+            margin: "1rem",
+            "space-lg": "1.25rem",
+            "gutter-desktop": "1.5rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            gutter: "1rem"
+          },
+          fontFamily: {
+            "headline-sm": ["Inter"],
+            "headline-lg": ["Inter"],
+            "counter-mono": ["JetBrains Mono"],
+            "body-sm": ["Inter"],
+            "display-mobile": ["Inter"],
+            "body-md": ["Inter"],
+            "body-lg": ["Inter"],
+            "status-badge": ["Inter"],
+            display: ["Inter"],
+            "label-mono": ["JetBrains Mono"],
+            "headline-md": ["Inter"]
+          },
+          fontSize: {
+            "headline-sm": ["16px", { lineHeight: "24px", letterSpacing: "-0.005em", fontWeight: "600" }],
+            "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "-0.015em", fontWeight: "600" }],
+            "counter-mono": ["18px", { lineHeight: "24px", fontWeight: "600" }],
+            "body-sm": ["12px", { lineHeight: "18px", fontWeight: "400" }],
+            "display-mobile": ["26px", { lineHeight: "34px", letterSpacing: "-0.01em", fontWeight: "700" }],
+            "body-md": ["13px", { lineHeight: "20px", fontWeight: "400" }],
+            "body-lg": ["15px", { lineHeight: "24px", fontWeight: "400" }],
+            "status-badge": ["11px", { lineHeight: "14px", letterSpacing: "0.02em", fontWeight: "600" }],
+            display: ["32px", { lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700" }],
+            "label-mono": ["12px", { lineHeight: "16px", fontWeight: "500" }],
+            "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "-0.01em", fontWeight: "600" }]
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-background font-body-md text-on-surface antialiased">
+  <!-- SIDEBAR -->
+  <aside class="fixed left-0 top-0 h-full w-64 bg-surface-container-lowest z-50 flex flex-col justify-between shadow-[0_1px_16px_rgba(37,99,235,0.06)]">
+    <div class="flex flex-col">
+      <div class="h-16 flex items-center px-space-lg gap-space-sm bg-surface-container-lowest">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-secondary flex items-center justify-center text-white shadow-md">
+          <span class="material-symbols-outlined text-[20px]">layers</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-headline-sm text-headline-sm text-on-surface leading-tight tracking-tight">ThreadLab</span>
+          <span class="font-label-mono text-label-mono text-outline leading-none text-[10px]">Simulation of Multithreading</span>
+        </div>
+      </div>
+      <div class="px-space-md py-space-xs">
+        <div class="px-space-sm py-space-xs font-label-mono text-label-mono uppercase tracking-wider text-outline text-[10px]">Simulations & Labs</div>
+      </div>
+      <nav class="px-space-md flex flex-col gap-1">
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/dashboard.html">
+          <span class="material-symbols-outlined text-[19px]">space_dashboard</span>
+          <span class="font-body-md text-body-md">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/thread-manager.html">
+          <span class="material-symbols-outlined text-[19px]">tune</span>
+          <span class="font-body-md text-body-md">Thread Manager</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/cpu-scheduling.html">
+          <span class="material-symbols-outlined text-[19px]">memory</span>
+          <span class="font-body-md text-body-md">CPU Scheduling</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/thread-lifecycle.html">
+          <span class="material-symbols-outlined text-[19px]">timeline</span>
+          <span class="font-body-md text-body-md">Thread Lifecycle</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/synchronization.html">
+          <span class="material-symbols-outlined text-[19px]">lock_reset</span>
+          <span class="font-body-md text-body-md">Synchronization Lab</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/deadlock.html">
+          <span class="material-symbols-outlined text-[19px]">rule_folder</span>
+          <span class="font-body-md text-body-md">Deadlock Lab</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/context-switching.html">
+          <span class="material-symbols-outlined text-[19px]">swap_horiz</span>
+          <span class="font-body-md text-body-md">Context Switching</span>
+        </a>
+        <a class="flex items-center gap-space-sm px-space-md py-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all" href="/pages/analytics.html">
+          <span class="material-symbols-outlined text-[19px]">analytics</span>
+          <span class="font-body-md text-body-md">Performance Analytics</span>
+        </a>
+        <a aria-current="page" class="flex items-center gap-space-sm px-space-md py-2 rounded-xl transition-all bg-gradient-to-r from-primary-container to-secondary text-on-primary shadow-[0_4px_12px_rgba(37,99,235,0.25)] font-semibold" href="/pages/learning.html">
+          <span class="material-symbols-outlined text-[19px]">school</span>
+          <span class="font-body-md text-body-md">Learning Mode</span>
+        </a>
+      </nav>
+    </div>
+    <div class="p-space-md flex flex-col gap-space-sm">
+      <div class="bg-surface-container-low rounded-xl p-space-md shadow-[0_2px_8px_rgba(37,99,235,0.04)]">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-status-badge text-status-badge text-primary uppercase font-bold tracking-wider">OS Simulator</span>
+          <span class="material-symbols-outlined text-secondary text-[16px] animate-spin">sync</span>
+        </div>
+        <p class="font-body-sm text-body-sm text-on-surface-variant">Interactive textbooks, theories, and knowledge checks.</p>
+      </div>
+      <div class="flex items-center justify-between p-space-sm rounded-xl bg-surface-container-lowest shadow-[0_2px_6px_rgba(0,0,0,0.03)]">
+        <div class="flex items-center gap-space-sm">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-primary to-secondary text-white flex items-center justify-center font-bold text-xs">N</div>
+          <div class="flex flex-col">
+            <span class="font-body-md text-body-md text-on-surface font-semibold leading-tight">Nikhil</span>
+            <span class="font-status-badge text-status-badge text-on-surface-variant leading-none">Student Role</span>
+          </div>
+        </div>
+        <a href="/pages/login.html" class="text-outline hover:text-error transition-colors p-1 rounded-lg hover:bg-surface-container-low" title="Log out">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOP HEADER -->
+  <div class="pl-64">
+    <header class="fixed top-0 left-64 right-0 h-16 bg-surface-container-lowest/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(37,99,235,0.04)] z-40 flex items-center justify-between px-space-lg">
+      <div class="flex items-center gap-space-md">
+        <div class="flex items-center gap-2 font-body-sm text-body-sm text-outline">
+          <span class="hover:text-primary transition-colors cursor-pointer">Platform</span>
+          <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+          <span class="text-on-surface font-semibold">Learning Mode</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-space-lg">
+        <div class="relative flex items-center">
+          <span class="material-symbols-outlined absolute left-3 text-outline text-[18px]">search</span>
+          <input class="h-9 pl-9 pr-12 rounded-xl bg-surface-container-low text-on-surface placeholder:text-outline font-body-sm text-body-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search concept, algorithm..." type="text"/>
+          <span class="absolute right-2 px-1.5 py-0.5 rounded-md bg-surface-container-lowest text-outline font-label-mono text-[11px] shadow-sm">⌘K</span>
+        </div>
+        <div class="flex items-center gap-space-sm">
+          <button class="relative p-2 rounded-xl text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all">
+            <span class="material-symbols-outlined text-[20px]">notifications</span>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-error ring-2 ring-surface-container-lowest"></span>
+          </button>
+        </div>
+        <div class="h-6 w-[1px] bg-surface-container"></div>
+        <div class="flex items-center gap-space-sm bg-surface-container-low py-1 px-space-sm rounded-full">
+          <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-primary to-secondary text-white flex items-center justify-center font-bold text-xs">N</div>
+          <div class="flex flex-col text-left">
+            <span class="font-body-sm text-body-sm font-semibold text-on-surface leading-tight">Nikhil</span>
+            <span class="font-status-badge text-[10px] text-primary uppercase font-bold leading-none">Student</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="relative pt-16 w-full min-h-screen bg-background pb-12">
+      <div class="p-space-lg max-w-7xl mx-auto w-full flex flex-col gap-space-lg">
+        
+        <!-- Header Title Bar -->
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">
+          <div class="flex flex-col">
+            <div class="flex items-center gap-space-xs text-primary mb-1">
+              <span class="material-symbols-outlined text-[20px]">school</span>
+              <span class="font-label-mono text-label-mono uppercase tracking-wider font-semibold">Operating Systems Pedagogy</span>
+            </div>
+            <h1 class="font-display text-display text-on-surface tracking-tight">Interactive Learning Mode</h1>
+            <p class="font-body-md text-body-md text-on-surface-variant">Master threads, scheduling algorithms, synchronization primitives, deadlocks, and context switching with animated theory & interactive quizzes.</p>
+          </div>
+          <!-- Progress Pill -->
+          <div class="flex items-center gap-3 bg-surface-container-low p-2 px-4 rounded-full shadow-sm">
+            <span class="font-label-mono text-body-sm text-outline">Course Progress:</span>
+            <div class="w-24 h-2 bg-surface-container rounded-full overflow-hidden">
+              <div class="bg-gradient-to-r from-primary to-secondary h-full rounded-full" style="width: 75%;"></div>
+            </div>
+            <span class="font-counter-mono text-body-sm text-primary font-bold">75%</span>
+          </div>
+        </div>
+
+        <!-- Topic Tabs -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1" id="topic-tabs">
+          <button class="topic-tab active px-4 py-2 rounded-full font-headline-sm text-body-sm bg-gradient-to-r from-primary-container to-secondary text-on-primary shadow-sm flex items-center gap-1.5 transition-all" onclick="selectTopic('threads')">
+            <span class="material-symbols-outlined text-[16px]">tune</span>
+            1. Multithreading &amp; TCB
+          </button>
+          <button class="topic-tab px-4 py-2 rounded-full font-headline-sm text-body-sm bg-surface-container-low text-on-surface-variant hover:text-primary transition-all flex items-center gap-1.5" onclick="selectTopic('scheduling')">
+            <span class="material-symbols-outlined text-[16px]">memory</span>
+            2. CPU Scheduling
+          </button>
+          <button class="topic-tab px-4 py-2 rounded-full font-headline-sm text-body-sm bg-surface-container-low text-on-surface-variant hover:text-primary transition-all flex items-center gap-1.5" onclick="selectTopic('sync')">
+            <span class="material-symbols-outlined text-[16px]">lock_reset</span>
+            3. Synchronization &amp; Mutex
+          </button>
+          <button class="topic-tab px-4 py-2 rounded-full font-headline-sm text-body-sm bg-surface-container-low text-on-surface-variant hover:text-primary transition-all flex items-center gap-1.5" onclick="selectTopic('deadlock')">
+            <span class="material-symbols-outlined text-[16px]">rule_folder</span>
+            4. Deadlock &amp; Banker's
+          </button>
+          <button class="topic-tab px-4 py-2 rounded-full font-headline-sm text-body-sm bg-surface-container-low text-on-surface-variant hover:text-primary transition-all flex items-center gap-1.5" onclick="selectTopic('context')">
+            <span class="material-symbols-outlined text-[16px]">swap_horiz</span>
+            5. Context Switching
+          </button>
+        </div>
+
+        <!-- Topic Content Container -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-start" id="topic-container">
+          <!-- Left 8 cols: Detailed Theory & Visual Diagram -->
+          <div class="lg:col-span-8 flex flex-col gap-space-lg bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm" id="topic-main">
+            <!-- Dynamic Content Injected Here -->
+          </div>
+
+          <!-- Right 4 cols: Interactive Knowledge Check / Quiz -->
+          <div class="lg:col-span-4 flex flex-col gap-space-md">
+            <div class="bg-surface-container-lowest p-space-lg rounded-2xl shadow-sm flex flex-col gap-space-sm" id="quiz-card">
+              <!-- Quiz Injected Here -->
+            </div>
+
+            <!-- Quick Code Playground Link -->
+            <div class="bg-surface-container rounded-2xl p-space-lg flex flex-col justify-between shadow-sm">
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-2 text-primary font-headline-sm text-body-md font-bold">
+                  <span class="material-symbols-outlined text-[20px]">terminal</span>
+                  <span>Hands-on Simulation Labs</span>
+                </div>
+                <p class="font-body-sm text-body-sm text-on-surface-variant">
+                  Apply theoretical concepts directly on live virtual cores with real kernel algorithms.
+                </p>
+              </div>
+              <div class="pt-4 flex flex-col gap-2">
+                <a href="/pages/cpu-scheduling.html" class="flex items-center justify-between p-2 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high transition-all font-body-sm text-on-surface">
+                  <span class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[18px]">memory</span> CPU Scheduling Lab</span>
+                  <span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
+                </a>
+                <a href="/pages/synchronization.html" class="flex items-center justify-between p-2 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high transition-all font-body-sm text-on-surface">
+                  <span class="flex items-center gap-2"><span class="material-symbols-outlined text-secondary text-[18px]">lock</span> Synchronization Lab</span>
+                  <span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
+                </a>
+                <a href="/pages/deadlock.html" class="flex items-center justify-between p-2 rounded-xl bg-surface-container-lowest hover:bg-surface-container-high transition-all font-body-sm text-on-surface">
+                  <span class="flex items-center gap-2"><span class="material-symbols-outlined text-error text-[18px]">rule_folder</span> Deadlock Graph Lab</span>
+                  <span class="material-symbols-outlined text-[16px] text-outline">chevron_right</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/navigation.js"></script>
+  <script>
+    const topics = {
+      threads: {
+        title: "Multithreading Fundamentals & Thread Control Blocks (TCB)",
+        badge: "Module 1 • OS Architecture",
+        description: "A thread is the smallest schedulable unit of CPU execution within an operating system process. While all threads in the same process share virtual address space, open files, and global memory, each individual thread maintains its own private Thread Control Block (TCB).",
+        content: `
+          <div class="flex flex-col gap-4">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">Process vs Thread Memory Layout</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-2">
+                <span class="font-headline-sm text-[13px] text-primary font-bold">Shared Process Resources</span>
+                <ul class="list-disc list-inside font-body-sm text-on-surface-variant space-y-1">
+                  <li><strong>Text / Code Segment:</strong> Machine instructions.</li>
+                  <li><strong>Data & BSS Segments:</strong> Global variables and static allocations.</li>
+                  <li><strong>Heap Segment:</strong> Dynamic malloc() / new allocations.</li>
+                  <li><strong>File Descriptors:</strong> Open socket handles, disk files.</li>
+                </ul>
+              </div>
+              <div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-2">
+                <span class="font-headline-sm text-[13px] text-secondary font-bold">Private Thread State (TCB)</span>
+                <ul class="list-disc list-inside font-body-sm text-on-surface-variant space-y-1">
+                  <li><strong>Program Counter (PC):</strong> Address of the next instruction.</li>
+                  <li><strong>Register Set:</strong> Working ALU accumulator & general registers.</li>
+                  <li><strong>Stack Pointer (SP):</strong> Unique private call frame & local variables.</li>
+                  <li><strong>Scheduling State:</strong> Ready, Running, Blocked, Terminated.</li>
+                </ul>
+              </div>
+            </div>
+
+            <h3 class="font-headline-sm text-headline-sm text-on-surface mt-2">Amdahl's Law of Parallel Speedup</h3>
+            <div class="p-4 rounded-xl bg-surface-bright border border-surface-container-high flex flex-col gap-2">
+              <span class="font-counter-mono text-[14px] text-primary font-bold">S(N) = 1 / [ (1 - P) + (P / N) ]</span>
+              <p class="font-body-sm text-on-surface-variant">Where <strong>P</strong> is the parallelizable fraction of computation, and <strong>N</strong> is the number of processor cores. Even with an infinite number of virtual cores, overall speedup is strictly bounded by the serialized critical fraction (1 - P).</p>
+            </div>
+          </div>
+        `,
+        quiz: {
+          question: "Which of the following is UNIQUE to an individual thread and NOT shared among sibling threads in a process?",
+          options: [
+            "Stack and Program Counter (PC)",
+            "Heap Memory",
+            "Global Variables",
+            "Open File Descriptors"
+          ],
+          correct: 0,
+          explanation: "Each thread must execute independently with its own call hierarchy, hence each thread gets a dedicated Stack Pointer (SP) and Program Counter (PC) inside its TCB."
+        }
+      },
+      scheduling: {
+        title: "CPU Scheduling Algorithms & Metrics",
+        badge: "Module 2 • Dispatcher Core",
+        description: "CPU scheduling is the art of allocating processor cores to ready threads to maximize throughput and CPU utilization while minimizing waiting and turnaround times.",
+        content: `
+          <div class="flex flex-col gap-4">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">The 4 Core Algorithms Compared</h3>
+            <div class="space-y-3">
+              <div class="p-3 rounded-xl bg-surface-container-low">
+                <div class="flex items-center justify-between">
+                  <span class="font-headline-sm text-[13px] text-on-surface font-bold">1. First-Come, First-Served (FCFS)</span>
+                  <span class="font-status-badge text-[10px] bg-secondary-fixed text-on-secondary-fixed px-2 py-0.5 rounded-full font-bold">Non-Preemptive</span>
+                </div>
+                <p class="font-body-sm text-on-surface-variant mt-1">Simple FIFO queue. Susceptible to the <strong>Convoy Effect</strong>, where short I/O bound jobs queue behind a single massive CPU-bound burst.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-low">
+                <div class="flex items-center justify-between">
+                  <span class="font-headline-sm text-[13px] text-on-surface font-bold">2. Shortest Job First (SJF)</span>
+                  <span class="font-status-badge text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">Optimal Waiting</span>
+                </div>
+                <p class="font-body-sm text-on-surface-variant mt-1">Mathematically proven to yield the absolute lowest average waiting time. Downside: requires predicting future burst times, and can starve long jobs.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-low">
+                <div class="flex items-center justify-between">
+                  <span class="font-headline-sm text-[13px] text-on-surface font-bold">3. Priority Scheduling</span>
+                  <span class="font-status-badge text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-bold">Priority Inversion</span>
+                </div>
+                <p class="font-body-sm text-on-surface-variant mt-1">Highest priority thread executes first. Mitigated against starvation through <strong>Aging</strong> (gradually boosting priority over time).</p>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-low">
+                <div class="flex items-center justify-between">
+                  <span class="font-headline-sm text-[13px] text-on-surface font-bold">4. Round Robin (RR)</span>
+                  <span class="font-status-badge text-[10px] bg-primary-fixed text-primary px-2 py-0.5 rounded-full font-bold">Preemptive Fair Share</span>
+                </div>
+                <p class="font-body-sm text-on-surface-variant mt-1">Each thread executes for a fixed time quantum <strong>q</strong>. If q is too small, context-switch thrashing occurs; if q is infinite, it degrades to FCFS.</p>
+              </div>
+            </div>
+          </div>
+        `,
+        quiz: {
+          question: "What occurs if the Round Robin time quantum (q) is chosen to be extremely small (e.g. 10 microseconds)?",
+          options: [
+            "Massive CPU overhead due to context switching thrashing",
+            "It turns into First-Come First-Served (FCFS)",
+            "Thread starvation increases drastically",
+            "Throughput reaches theoretical perfection"
+          ],
+          correct: 0,
+          explanation: "If quantum q is too small, the proportion of time spent executing kernel context switches relative to user instructions grows huge, causing thrashing."
+        }
+      },
+      sync: {
+        title: "Synchronization Primitives & Critical Sections",
+        badge: "Module 3 • Concurrency Safety",
+        description: "When multiple threads concurrently modify shared memory without synchronization, instruction interleaving produces lost updates and race conditions.",
+        content: `
+          <div class="flex flex-col gap-4">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">The Read-Modify-Write Hazard</h3>
+            <div class="p-4 rounded-xl bg-error-container/30 border border-error/20 flex flex-col gap-2">
+              <span class="font-label-mono text-[12px] text-error font-bold">Assembly Instructions:</span>
+              <pre class="font-label-mono text-[11px] bg-surface-container-lowest p-2 rounded-lg text-on-surface">
+1: MOV EAX, [shared_counter]   ; Thread 1 reads 100
+-- CONTEXT SWITCH TO THREAD 2 --
+1: MOV EAX, [shared_counter]   ; Thread 2 reads 100
+2: ADD EAX, 1                  ; Thread 2 adds 1 = 101
+3: MOV [shared_counter], EAX   ; Thread 2 writes 101
+-- CONTEXT SWITCH TO THREAD 1 --
+2: ADD EAX, 1                  ; Thread 1 computes 101 (using stale EAX)
+3: MOV [shared_counter], EAX   ; Clobbers memory with 101! (1 update lost)</pre>
+            </div>
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">Binary Mutex vs Counting Semaphore</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="p-4 rounded-xl bg-surface-container-low">
+                <span class="font-headline-sm text-[13px] text-primary font-bold">Mutex (Mutual Exclusion)</span>
+                <p class="font-body-sm text-on-surface-variant mt-1">Binary ownership flag (0 or 1). ONLY the thread that acquired the lock may release it. Enforces strict mutual exclusion around the critical section.</p>
+              </div>
+              <div class="p-4 rounded-xl bg-surface-container-low">
+                <span class="font-headline-sm text-[13px] text-secondary font-bold">Counting Semaphore</span>
+                <p class="font-body-sm text-on-surface-variant mt-1">Integer permit pool. wait() decrements, signal() increments. Useful for bounded buffers and signaling between producer and consumer threads.</p>
+              </div>
+            </div>
+          </div>
+        `,
+        quiz: {
+          question: "What is the key difference between a Mutex and a Counting Semaphore with initial value 1?",
+          options: [
+            "A Mutex has the concept of ownership; only the locking thread may unlock it",
+            "Semaphores can only be used on single-core processors",
+            "Mutexes cannot prevent race conditions",
+            "Semaphores do not maintain a waiting queue"
+          ],
+          correct: 0,
+          explanation: "A Mutex incorporates ownership: the thread that calls pthread_mutex_lock() must be the one that calls pthread_mutex_unlock(). Any thread can signal a semaphore."
+        }
+      },
+      deadlock: {
+        title: "Deadlocks, Coffman Conditions & Banker's Algorithm",
+        badge: "Module 4 • Deadlock Prevention",
+        description: "A deadlock is a permanent state where a set of threads are blocked because each holds a resource and waits for another resource held by another thread in the set.",
+        content: `
+          <div class="flex flex-col gap-4">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">The 4 Coffman Conditions</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="p-3 rounded-xl bg-surface-container-low">
+                <span class="font-headline-sm text-[12px] text-error font-bold">1. Mutual Exclusion</span>
+                <p class="font-body-sm text-on-surface-variant">At least one non-shareable resource.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-low">
+                <span class="font-headline-sm text-[12px] text-error font-bold">2. Hold &amp; Wait</span>
+                <p class="font-body-sm text-on-surface-variant">A thread holds resources while requesting new ones.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-low">
+                <span class="font-headline-sm text-[12px] text-error font-bold">3. No Preemption</span>
+                <p class="font-body-sm text-on-surface-variant">Resources cannot be forcibly revoked before release.</p>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-low">
+                <span class="font-headline-sm text-[12px] text-error font-bold">4. Circular Wait</span>
+                <p class="font-body-sm text-on-surface-variant">A closed cycle exists in the Resource Allocation Graph.</p>
+              </div>
+            </div>
+
+            <h3 class="font-headline-sm text-headline-sm text-on-surface mt-2">Banker's Avoidance Algorithm</h3>
+            <p class="font-body-sm text-on-surface-variant">Developed by Edsger Dijkstra. Before granting any resource request, the OS checks if the resulting state is <strong>SAFE</strong> by attempting to discover a completion sequence: <code>Available ≥ Need[i]</code>.</p>
+          </div>
+        `,
+        quiz: {
+          question: "Breaking which Coffman condition is the most practical way to structurally prevent deadlocks in lock hierarchies?",
+          options: [
+            "Circular Wait (by enforcing strict global lock acquisition ordering)",
+            "Mutual Exclusion (by eliminating all mutex locks)",
+            "No Preemption (by killing all processes randomly)",
+            "None of the above"
+          ],
+          correct: 0,
+          explanation: "Assigning a unique numerical level to every mutex and enforcing that locks can only be acquired in strictly ascending order mathematically prevents circular wait."
+        }
+      },
+      context: {
+        title: "Context Switching & Architectural Overhead",
+        badge: "Module 5 • Hardware & Kernel",
+        description: "A context switch is the sequence of kernel operations required to store the processor state of a running thread and restore the state of a chosen successor thread.",
+        content: `
+          <div class="flex flex-col gap-4">
+            <h3 class="font-headline-sm text-headline-sm text-on-surface">The 4 Sequential Phases</h3>
+            <div class="space-y-2">
+              <div class="p-3 rounded-xl bg-surface-container-low flex items-center justify-between">
+                <span><strong>Phase 1:</strong> Hardware Interrupt (APIC Timer tick or Trap) -> Ring 0</span>
+                <span class="font-label-mono text-[11px] text-outline">~0.15 µs</span>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-low flex items-center justify-between">
+                <span><strong>Phase 2:</strong> Push Registers (PC, SP, RAX, RBX, Flags) into outgoing TCB</span>
+                <span class="font-label-mono text-[11px] text-primary">~0.45 µs</span>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-low flex items-center justify-between">
+                <span><strong>Phase 3:</strong> Scheduler dispatch logic picks next thread from Ready Queue</span>
+                <span class="font-label-mono text-[11px] text-secondary">~0.55 µs</span>
+              </div>
+              <div class="p-3 rounded-xl bg-surface-container-low flex items-center justify-between">
+                <span><strong>Phase 4:</strong> Pop registers from incoming TCB & execute <code>iretq</code> to Ring 3</span>
+                <span class="font-label-mono text-[11px] text-emerald-700">~0.67 µs</span>
+              </div>
+            </div>
+
+            <h3 class="font-headline-sm text-headline-sm text-on-surface mt-2">Direct vs Indirect Switch Penalties</h3>
+            <p class="font-body-sm text-on-surface-variant">The <strong>direct cost</strong> is saving/restoring registers (1-2 µs). The <strong>indirect cost</strong> is far greater: Translation Lookaside Buffer (TLB) evictions and L1/L2 cache pollution require incoming threads to reload working memory from slower DRAM.</p>
+          </div>
+        `,
+        quiz: {
+          question: "Why is context switching between threads of the SAME process significantly faster than switching between different processes?",
+          options: [
+            "Threads share the same virtual address space, avoiding MMU page table (CR3) flushes",
+            "Threads do not use hardware registers",
+            "Threads do not need a program counter",
+            "Kernel mode is completely skipped"
+          ],
+          correct: 0,
+          explanation: "Process switches require swapping the CR3 root page table register which invalidates the TLB cache. Same-process thread switches retain the active virtual address translation."
+        }
+      }
+    };
+
+    let currentTopicKey = 'threads';
+
+    function selectTopic(key) {
+      currentTopicKey = key;
+      const topic = topics[key];
+      if (!topic) return;
+
+      // Update Tab Styles
+      const buttons = document.querySelectorAll('.topic-tab');
+      buttons.forEach(btn => {
+        if (btn.getAttribute('onclick').includes(key)) {
+          btn.className = "topic-tab active px-4 py-2 rounded-full font-headline-sm text-body-sm bg-gradient-to-r from-primary-container to-secondary text-on-primary shadow-sm flex items-center gap-1.5 transition-all";
+        } else {
+          btn.className = "topic-tab px-4 py-2 rounded-full font-headline-sm text-body-sm bg-surface-container-low text-on-surface-variant hover:text-primary transition-all flex items-center gap-1.5";
+        }
+      });
+
+      // Render Topic Main
+      const main = document.getElementById('topic-main');
+      main.innerHTML = `
+        <div class="flex items-center justify-between pb-space-xs border-b border-surface-container">
+          <div class="flex flex-col">
+            <span class="font-status-badge text-[11px] uppercase tracking-wider text-primary font-bold">${topic.badge}</span>
+            <h2 class="font-headline-lg text-headline-lg text-on-surface font-bold tracking-tight">${topic.title}</h2>
+          </div>
+        </div>
+        <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed">${topic.description}</p>
+        ${topic.content}
+      `;
+
+      // Render Quiz
+      renderQuiz(topic.quiz);
+    }
+
+    function renderQuiz(quiz) {
+      const card = document.getElementById('quiz-card');
+      card.innerHTML = `
+        <div class="flex items-center justify-between pb-2">
+          <div class="flex items-center gap-2 text-primary font-headline-sm text-headline-sm font-bold">
+            <span class="material-symbols-outlined text-[20px]">quiz</span>
+            <span>Knowledge Check</span>
+          </div>
+          <span class="font-status-badge text-[10px] bg-primary-fixed text-primary px-2 py-0.5 rounded-full font-bold">1 Question</span>
+        </div>
+        <p class="font-body-md text-body-md text-on-surface font-medium mb-3">${quiz.question}</p>
+        <div class="flex flex-col gap-2" id="quiz-options">
+          ${quiz.options.map((opt, i) => `
+            <button class="w-full text-left p-3 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface font-body-sm text-body-sm transition-all flex items-center gap-2 group" onclick="checkAnswer(${i}, ${quiz.correct})">
+              <span class="w-6 h-6 rounded-lg bg-surface-container-lowest flex items-center justify-center font-counter-mono text-[11px] font-bold text-outline group-hover:text-primary">${String.fromCharCode(65 + i)}</span>
+              <span>${opt}</span>
+            </button>
+          `).join('')}
+        </div>
+        <div id="quiz-feedback" class="mt-3 hidden p-3 rounded-xl font-body-sm"></div>
+      `;
+    }
+
+    function checkAnswer(chosen, correct) {
+      const fb = document.getElementById('quiz-feedback');
+      const quiz = topics[currentTopicKey].quiz;
+      fb.classList.remove('hidden');
+
+      if (chosen === correct) {
+        fb.className = "mt-3 p-3 rounded-xl bg-emerald-100 text-emerald-800 font-body-sm flex flex-col gap-1";
+        fb.innerHTML = `
+          <div class="flex items-center gap-1 font-bold text-emerald-800">
+            <span class="material-symbols-outlined text-[18px]">check_circle</span>
+            <span>Correct!</span>
+          </div>
+          <p>${quiz.explanation}</p>
+        `;
+      } else {
+        fb.className = "mt-3 p-3 rounded-xl bg-error-container text-on-error-container font-body-sm flex flex-col gap-1";
+        fb.innerHTML = `
+          <div class="flex items-center gap-1 font-bold text-error">
+            <span class="material-symbols-outlined text-[18px]">cancel</span>
+            <span>Incorrect, try again!</span>
+          </div>
+          <p>${quiz.explanation}</p>
+        `;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      selectTopic('threads');
+    });
+  </script>
+</body>
+</html>
+
