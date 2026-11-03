@@ -10,10 +10,10 @@
 
 ### Design System Integrity
 All screens strictly implement a modern, cohesive design language:
-- **Theme**: Pure light mode (`#F7F9FF` canvas, `#FFFFFF` surface cards, soft ambient blue/violet drop shadows).
+- **Theme**:light mode (`#F7F9FF` canvas, `#FFFFFF` surface cards, soft ambient blue/violet drop shadows).
 - **Typography**: Inter (UI / Display) and JetBrains Mono (registers, assembly, telemetry metrics).
 - **Iconography**: Material Symbols Outlined.
-- **Frontend Framework**: Pure HTML5, Tailwind CSS (via CDN), and Vanilla JavaScript (zero React/framework overhead).
+- **Frontend Framework**: HTML5, Tailwind CSS (via CDN), and Vanilla JavaScript (zero React/framework overhead).
 - **Backend Architecture**: Python + Flask REST APIs, modular deterministic scheduling algorithms, and simulated register banks.
 
 ---
