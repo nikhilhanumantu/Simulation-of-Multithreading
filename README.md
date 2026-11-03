@@ -3,9 +3,6 @@
 > **Individual Operating Systems Project**  
 > An advanced, interactive, full-stack Operating Systems simulation platform into a production-grade educational environment.
 
-![ThreadLab Platform Overview](frontend/assets/images/threadlab_overview.jpg)
-
----
 
 ## 🌟 Executive Summary
 
